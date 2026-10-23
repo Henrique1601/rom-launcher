@@ -36,6 +36,9 @@ class ArchiveOrgProvider(BaseProvider):
         "dreamcast": ("Dreamcast", ["cdi", "gdi", "chd", "zip"]),
         "saturn": ("Saturn", ["cue", "bin", "chd", "zip"]),
         "arcade": ("Arcade", ["zip"]),
+        "xbox": ("Xbox", ["iso", "xiso", "zip", "7z"]),
+        "xbox360": ("Xbox 360", ["iso", "god", "zip", "rar"]),
+        "xbla": ("Xbox Live Arcade", ["zip", "7z", "bin", "iso"]),
     }
     skip = ("_files.xml", "_meta.xml", "_meta.sqlite", "_archive.torrent", ".torrent")
     port_queries = (

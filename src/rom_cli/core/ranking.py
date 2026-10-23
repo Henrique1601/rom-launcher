@@ -34,6 +34,8 @@ WIKI_LISTS = {
     "gc": "List_of_best-selling_GameCube_video_games",
     "wii": "List_of_best-selling_Wii_video_games",
     "genesis": "List_of_best-selling_Sega_Genesis_games",
+    "xbox": "List_of_best-selling_Xbox_video_games",
+    "xbox360": "List_of_best-selling_Xbox_360_video_games",
 }
 POPULAR_FILE = CACHE_DIR / "popular.json"
 POPULAR_TTL = 30 * 86400
@@ -318,6 +320,12 @@ def search_all(
     if platform_key and len(results) < 6 and platform_key in ARCHIVE_ORG.tags:
         try:
             add(ARCHIVE_ORG.search(query, platform_key=platform_key))
+        except Exception:
+            pass
+
+    if platform_key == "xbox":
+        try:
+            add(ROMSGAMES.search(query, platform_key="xbox", prefixes=["xbox"]))
         except Exception:
             pass
 

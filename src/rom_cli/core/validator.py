@@ -39,6 +39,15 @@ def validate_file(path: Union[str, Path]) -> bool:
         if name.endswith(".pkg"):
             with open(path, "rb") as f:
                 return f.read(4) in (b"\x7fPKG", b"\x7fCNT")
+
+        if name.endswith((".xbe", ".xex")):
+            with open(path, "rb") as f:
+                head = f.read(4)
+            return head in (b"XBEH", b"XEX2")
+
+        if name.endswith((".iso", ".xiso")):
+            # Se for uma imagem de disco com mais de 500KB já passou na checagem inicial
+            return True
     except (OSError, Exception):
         return False
 

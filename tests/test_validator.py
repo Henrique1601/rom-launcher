@@ -43,6 +43,16 @@ class TestValidator(unittest.TestCase):
             elif os.path.exists(path):
                 os.unlink(path)
 
+    def test_validate_xbox_executables(self):
+        fd, path = tempfile.mkstemp(suffix=".xbe")
+        try:
+            with os.fdopen(fd, "wb") as f:
+                f.write(b"XBEH" + b"0" * 2000)
+            self.assertTrue(validate_file(path))
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
 
 if __name__ == "__main__":
     unittest.main()

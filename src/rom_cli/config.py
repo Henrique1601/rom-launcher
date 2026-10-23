@@ -60,6 +60,9 @@ PLATFORMS = {
     "dreamcast": ("romsgames", ["sega-dreamcast"]),
     "saturn": ("romsgames", ["sega-saturn"]),
     "arcade": ("romsgames", ["mame", "snk-neo-geo"]),
+    "xbox": ("archive.org", "xbox"),
+    "xbox360": ("archive.org", "xbox360"),
+    "xbla": ("archive.org", "xbla"),
 }
 
 PLATFORM_LABELS = {
@@ -88,6 +91,9 @@ PLATFORM_LABELS = {
     "dreamcast": "Dreamcast",
     "saturn": "Saturn",
     "arcade": "Arcade",
+    "xbox": "Xbox",
+    "xbox360": "Xbox 360",
+    "xbla": "Xbox Live Arcade",
 }
 
 LABELS = {
@@ -111,12 +117,13 @@ LABELS = {
     "sega-saturn": "Saturn",
     "mame": "Arcade",
     "snk-neo-geo": "Neo Geo",
+    "xbox": "Xbox",
 }
 
 ROM_EXTS = (
     "zip", "7z", "rar", "nsp", "xci", "nsz", "iso", "cia", "pkg", "rom",
     "bin", "sfc", "smc", "nes", "gba", "gbc", "gb", "nds", "n64", "z64",
-    "md", "smd", "gcm", "wbfs", "rvz", "cso", "pbp"
+    "md", "smd", "gcm", "wbfs", "rvz", "cso", "pbp", "xiso", "xbe", "xex", "god"
 )
 
 STOP_WORDS = {
