@@ -1,22 +1,30 @@
-# 📋 Handoff de Estado da Sessão
+# Estado Atual da Sessão & Handoff
 
-> **Atualizado em:** 30/10/2026  
-> **Autoridade:** `memory-architect-agent` & `global-master-agent`
-
----
-
-## 📌 Estado Atual da Entrega
-1. **CLI & TUI:** Suporte completo a 28 plataformas (Nintendo, PlayStation, Xbox, Sega, Arcade, PC).
-2. **Provedores:** DlArchive, RomsGames, NoPayStation (Sony CDN), DlpsGame, Archive.org e Myrient (No-Intro & Redump).
-3. **Core:** Download turbo em chunks paralelos, retomada com `Range`, extração automática (`-x`), validação de magic bytes.
-4. **Desktop GUI:** CustomTkinter com modo lista e grade de posters (Box Art do Libretro), Playtime Tracker (tempo jogado).
-5. **Instaladores:** Script `install-desktop.ps1` com atalhos Windows e script `build-exe.ps1` para gerar `.exe` independente.
+**Última Atualização:** 2026-10-30  
+**Versão Atual:** `v0.2.0`  
+**Branch Ativa:** `main`  
+**Status dos Testes:** 20/20 suites passando (`unittest`)  
+**Agente Responsável:** `git-master-agent`
 
 ---
 
-## 🎯 Próximas Entregas em Andamento:
-- [x] Implantação da estrutura do Cérebro `.brain/`.
-- [ ] Implementação 2: Integração com RetroAchievements (conquistas e troféus).
-- [ ] Implementação 3: Modo Sofá / Gamepad (navegação XInput nativa).
-- [ ] Implementação 5: Botão Roleta Gamer ("O Que Jogar Hoje?").
-- [ ] Implementação 6: Script Inno Setup (`installer.iss`) para criar `Setup.exe`.
+## 🎯 Entregas Concluídas
+
+1. **Repositório Git Auditado:**
+   - Branch padrão ajustada para `main`.
+   - Histórico padronizado sob *Conventional Commits* (`0fe7fba` -> `1a94d50`).
+   - Tag anotada `v0.2.0` criada com sucesso.
+   - Licença oficial **MIT License** adicionada com copyright 2026 Henrique Bezerra Dos Santos.
+
+2. **Automação GitHub Actions:**
+   - `.github/workflows/ci.yml`: Testes automatizados matriciais (Python 3.10, 3.11, 3.12 em Windows, Linux e macOS).
+   - `.github/workflows/release.yml`: Build automatizado do executável Windows com PyInstaller e publicação automática em GitHub Releases no push de tags `v*`.
+
+3. **Módulos do Ecossistema Integrados:**
+   - Suporte a 28 plataformas (incluindo Xbox OG, Xbox 360, XBLA).
+   - GUI Desktop em CustomTkinter com Box Art scraper e Playtime Tracker.
+   - RetroAchievements API integration (`core/retroachievements.py`).
+   - Couch / Gamepad Mode nativo via XInput (`core/gamepad.py`).
+   - Roleta Gamer (`core/roulette.py`).
+   - Instalador Inno Setup (`installer.iss` e `build-setup.ps1`).
+   - Sistema de memória viva persistente (`.brain/`).
