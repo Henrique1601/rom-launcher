@@ -86,6 +86,7 @@ def main() -> int:
     ap.add_argument("-x", "--extract", action="store_true", help="extrai automaticamente arquivos compactados (zip/7z)")
     ap.add_argument("--play", action="store_true", help="abre o jogo automaticamente no emulador após baixar")
     ap.add_argument("--launch", action="store_true", help="abre o launcher de jogos instalados na biblioteca")
+    ap.add_argument("--gui", action="store_true", help="abre o aplicativo Desktop completo com janela gráfica")
     ap.add_argument("--installed", action="store_true", help="lista jogos já baixados na máquina")
     ap.add_argument("--set-emulator", nargs=2, metavar=("PLATFORM", "PATH"), help="define caminho customizado de um emulador")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
@@ -124,6 +125,15 @@ def main() -> int:
                 write(f"    - {g.title} (.{g.extension}) [{human_size(g.size)}]")
             write()
         return 0
+
+    if args.gui:
+        try:
+            from rom_cli.gui.main_window import main as gui_main
+            gui_main()
+            return 0
+        except ImportError as e:
+            write(f"  ✖ Dependências gráficas ausentes: {e}\n  Execute: pip install customtkinter pillow")
+            return 1
 
     if args.launch:
         if not _has_textual():
