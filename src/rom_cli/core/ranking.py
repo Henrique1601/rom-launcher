@@ -14,7 +14,7 @@ from rom_cli.core.utils import (
     norm, clean, significant_words, request_http
 )
 from rom_cli.models import RomItem
-from rom_cli.providers import SOURCES, DLA, NPS, DLP, ARCHIVE_ORG, ROMSGAMES
+from rom_cli.providers import SOURCES, DLA, NPS, DLP, ARCHIVE_ORG, ROMSGAMES, MYRIENT
 
 WIKI_LISTS = {
     "switch": "List_of_best-selling_Nintendo_Switch_video_games",
@@ -320,6 +320,12 @@ def search_all(
     if platform_key and len(results) < 6 and platform_key in ARCHIVE_ORG.tags:
         try:
             add(ARCHIVE_ORG.search(query, platform_key=platform_key))
+        except Exception:
+            pass
+
+    if platform_key in MYRIENT.COLLECTIONS:
+        try:
+            add(MYRIENT.search(query, platform_key=platform_key))
         except Exception:
             pass
 

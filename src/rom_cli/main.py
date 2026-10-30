@@ -13,6 +13,8 @@ from rom_cli.core.utils import write, status, clear_status, human_size
 from rom_cli.core.ranking import (
     search_all, rank, browse_items, load_popular
 )
+from rom_cli.core.extractor import extract_archive
+from rom_cli.core.launcher import launch_game, find_emulator
 from rom_cli.tui.app import launch_tui, download_item
 from rom_cli.providers import DLA, DLP, SOURCES
 from rom_cli.models import RomItem
@@ -34,7 +36,7 @@ def show_results(results: List[RomItem], limit: int = 15) -> None:
     write()
 
 
-def run_cli_download(picked: List[RomItem], outdir: Path) -> int:
+def run_cli_download(picked: List[RomItem], outdir: Path, auto_extract: bool = False, play: bool = False) -> int:
     ok = 0
     for i, r in enumerate(picked, 1):
         write()
@@ -44,6 +46,19 @@ def run_cli_download(picked: List[RomItem], outdir: Path) -> int:
             clear_status()
             size_str = human_size(path.stat().st_size) if path.exists() else "?"
             write(f"  ✔ pronto: {path}  ({size_str})")
+
+            if auto_extract and path.suffix.lower() in (".zip", ".7z", ".rar"):
+                write(f"  📦 extraindo {path.name}...")
+                extract_archive(path, remove_archive=False, on_progress=lambda m: write(f"     {m}"))
+                write("  ✔ extração concluída")
+
+            if play:
+                write(f"  🎮 iniciando jogo no emulador...")
+                if launch_game(path, r.platform):
+                    write("  ✔ jogo iniciado com sucesso!")
+                else:
+                    write(f"  ✖ nenhum emulador configurado/encontrado para {r.platform_label}")
+
             ok += 1
         except Exception as e:
             clear_status()
@@ -67,6 +82,8 @@ def main() -> int:
     ap.add_argument("-p", "--platform", help="switch, snes, gba, ps2, nds, wii… (use -l)")
     ap.add_argument("-l", "--platforms", action="store_true", help="lista plataformas")
     ap.add_argument("-y", "--yes", action="store_true", help="baixa o melhor sem perguntar")
+    ap.add_argument("-x", "--extract", action="store_true", help="extrai automaticamente arquivos compactados (zip/7z)")
+    ap.add_argument("--play", action="store_true", help="abre o jogo automaticamente no emulador após baixar")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
     ap.add_argument("--print-url", action="store_true", help="mostra o link direto e sai")
     ap.add_argument("--refresh", action="store_true", help="reconstrói o índice do catálogo")
@@ -165,7 +182,7 @@ def main() -> int:
 
     if args.yes or not sys.stdin.isatty() or not _has_textual():
         show_results(results, args.number)
-        return run_cli_download(results[:1], outdir)
+        return run_cli_download(results[:1], outdir, auto_extract=args.extract, play=args.play)
 
     # Abre a TUI com os resultados pré-carregados
     launch_tui(platform_key=key, query=query, outdir=outdir, force=args.refresh)
