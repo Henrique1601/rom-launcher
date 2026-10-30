@@ -13,8 +13,11 @@ import customtkinter as ctk
 from rom_cli.config import OUT_DIR, PLATFORM_LABELS
 from rom_cli.core.downloader import get_unique_path, stream_download
 from rom_cli.core.extractor import extract_archive
+from rom_cli.core.gamepad import GAMEPAD
 from rom_cli.core.launcher import launch_game
 from rom_cli.core.ranking import rank, search_all
+from rom_cli.core.retroachievements import RA_CLIENT
+from rom_cli.core.roulette import pick_random_game
 from rom_cli.core.scraper import fetch_boxart, get_cover_path
 from rom_cli.core.tracker import TRACKER
 from rom_cli.core.utils import human_size, safe_name
@@ -51,6 +54,19 @@ class RomLauncherApp(ctk.CTk):
         self._setup_layout()
         self._select_tab("library")
         self.refresh_library()
+
+        # Inicializa suporte a Gamepad (XInput / Modo Sofá)
+        if GAMEPAD.is_available():
+            GAMEPAD.on_y = lambda: self.after(0, self._spin_roulette)
+            GAMEPAD.on_lb = lambda: self.after(0, self._gamepad_prev_platform)
+            GAMEPAD.on_rb = lambda: self.after(0, self._gamepad_next_platform)
+            GAMEPAD.start()
+
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _on_close(self):
+        GAMEPAD.stop()
+        self.destroy()
 
     def _setup_layout(self):
         self.grid_rowconfigure(0, weight=1)
@@ -189,6 +205,17 @@ class RomLauncherApp(ctk.CTk):
         self.view_mode_segmented.set("⊞ Grade")
         self.view_mode_segmented.grid(row=0, column=3)
 
+        self.btn_roulette = ctk.CTkButton(
+            top_bar,
+            text="🎲 Roleta",
+            width=90,
+            height=35,
+            fg_color="#6f42c1",
+            hover_color="#59359a",
+            command=self._spin_roulette
+        )
+        self.btn_roulette.grid(row=0, column=4, padx=(8, 0))
+
         # Container rolável para os cards de jogos
         self.library_scroll = ctk.CTkScrollableFrame(self.view_library, fg_color="transparent")
         self.library_scroll.grid(row=1, column=0, sticky="nsew")
@@ -302,6 +329,7 @@ class RomLauncherApp(ctk.CTk):
                 anchor="w"
             )
             sub_lbl.pack(anchor="w")
+            self._load_card_achievements(game, sub_lbl)
 
             btn_play = ctk.CTkButton(
                 card,
@@ -352,6 +380,7 @@ class RomLauncherApp(ctk.CTk):
                 text_color="gray70"
             )
             meta_lbl.pack(padx=8, pady=(0, 6))
+            self._load_grid_achievements(game, meta_lbl)
 
             btn_play = ctk.CTkButton(
                 card,
@@ -362,6 +391,51 @@ class RomLauncherApp(ctk.CTk):
                 hover_color="#218838",
                 command=lambda g=game: self._launch_game_action(g)
             )
+            btn_play.pack(fill="x", padx=12, pady=(0, 10))
+
+    def _load_card_achievements(self, game: InstalledGame, label: ctk.CTkLabel):
+        def worker():
+            info = RA_CLIENT.get_game_info(game.title, game.platform_key)
+            if info and info.get("achievements_count"):
+                txt = f"  •  🏆 {info['achievements_count']} Conquistas ({info['points']} pts)"
+                self.after(0, lambda: label.configure(text=label.cget("text") + txt))
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _load_grid_achievements(self, game: InstalledGame, label: ctk.CTkLabel):
+        def worker():
+            info = RA_CLIENT.get_game_info(game.title, game.platform_key)
+            if info and info.get("achievements_count"):
+                cur_text = label.cget("text")
+                parts = cur_text.split("\n", 1)
+                new_text = f"{parts[0]} • 🏆 {info['achievements_count']}\n{parts[1]}" if len(parts) > 1 else f"{cur_text} • 🏆 {info['achievements_count']}"
+                self.after(0, lambda: label.configure(text=new_text))
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _spin_roulette(self):
+        pk = None if self.current_library_platform == "all" else self.current_library_platform
+        lucky = pick_random_game(platform_key=pk, outdir=self.outdir)
+        if not lucky:
+            self.library_status.configure(text="✖ Nenhum jogo encontrado na biblioteca para sortear.")
+            return
+
+        self.library_status.configure(text=f"🎲 Roleta sorteou: {lucky.title} ({lucky.platform_label})! Iniciando...")
+        self._launch_game_action(lucky)
+
+    def _gamepad_prev_platform(self):
+        platforms = self.platform_filter_menu.cget("values")
+        cur = self.platform_filter_menu.get()
+        if cur in platforms:
+            idx = (platforms.index(cur) - 1) % len(platforms)
+            self.platform_filter_menu.set(platforms[idx])
+            self._on_library_platform_changed(platforms[idx])
+
+    def _gamepad_next_platform(self):
+        platforms = self.platform_filter_menu.cget("values")
+        cur = self.platform_filter_menu.get()
+        if cur in platforms:
+            idx = (platforms.index(cur) + 1) % len(platforms)
+            self.platform_filter_menu.set(platforms[idx])
+            self._on_library_platform_changed(platforms[idx])
             btn_play.pack(fill="x", padx=12, pady=(0, 10))
 
     def _load_card_cover(self, game: InstalledGame, label: ctk.CTkLabel):

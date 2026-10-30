@@ -87,6 +87,7 @@ def main() -> int:
     ap.add_argument("--play", action="store_true", help="abre o jogo automaticamente no emulador após baixar")
     ap.add_argument("--launch", action="store_true", help="abre o launcher de jogos instalados na biblioteca")
     ap.add_argument("--gui", action="store_true", help="abre o aplicativo Desktop completo com janela gráfica")
+    ap.add_argument("--random", "--roulette", dest="roulette", action="store_true", help="sorteia e abre um jogo aleatório da sua biblioteca")
     ap.add_argument("--installed", action="store_true", help="lista jogos já baixados na máquina")
     ap.add_argument("--set-emulator", nargs=2, metavar=("PLATFORM", "PATH"), help="define caminho customizado de um emulador")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
@@ -133,6 +134,21 @@ def main() -> int:
             return 0
         except ImportError as e:
             write(f"  ✖ Dependências gráficas ausentes: {e}\n  Execute: pip install customtkinter pillow")
+            return 1
+
+    if args.roulette:
+        from rom_cli.core.roulette import pick_random_game
+        game = pick_random_game(platform_key=key or None, outdir=outdir)
+        if not game:
+            write("  ✖ Nenhum jogo encontrado na biblioteca para sortear.")
+            return 1
+        write(f"\n  🎲 Roleta Gamer sorteou: {game.title} [{game.platform_label}]!")
+        write(f"  🚀 Abrindo no emulador...")
+        if launch_game(game.path, game.platform_key):
+            write("  ✔ Jogo iniciado com sucesso!\n")
+            return 0
+        else:
+            write(f"  ✖ Nenhum emulador configurado para {game.platform_label}\n")
             return 1
 
     if args.launch:
