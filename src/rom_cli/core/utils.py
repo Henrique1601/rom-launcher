@@ -17,10 +17,18 @@ EXT_RE = re.compile(r"\.(" + "|".join(ROM_EXTS) + r")$", re.I)
 
 
 def write(text: str = "", newline: bool = True) -> None:
-    sys.stdout.write(text)
-    if newline and not text.endswith("\n"):
-        sys.stdout.write("\n")
-    sys.stdout.flush()
+    try:
+        sys.stdout.write(text)
+        if newline and not text.endswith("\n"):
+            sys.stdout.write("\n")
+        sys.stdout.flush()
+    except UnicodeEncodeError:
+        # Fallback para terminais Windows (cp1252) que não suportam certos emojis
+        safe_text = text.encode(sys.stdout.encoding or "ascii", errors="replace").decode(sys.stdout.encoding or "ascii")
+        sys.stdout.write(safe_text)
+        if newline and not safe_text.endswith("\n"):
+            sys.stdout.write("\n")
+        sys.stdout.flush()
 
 
 def status(msg: str) -> None:

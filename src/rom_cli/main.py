@@ -15,6 +15,7 @@ from rom_cli.core.ranking import (
 )
 from rom_cli.core.extractor import extract_archive
 from rom_cli.core.launcher import launch_game, find_emulator
+from rom_cli.launcher import LibraryScanner, EmulatorRegistry, launch_launcher_tui
 from rom_cli.tui.app import launch_tui, download_item
 from rom_cli.providers import DLA, DLP, SOURCES
 from rom_cli.models import RomItem
@@ -84,6 +85,9 @@ def main() -> int:
     ap.add_argument("-y", "--yes", action="store_true", help="baixa o melhor sem perguntar")
     ap.add_argument("-x", "--extract", action="store_true", help="extrai automaticamente arquivos compactados (zip/7z)")
     ap.add_argument("--play", action="store_true", help="abre o jogo automaticamente no emulador após baixar")
+    ap.add_argument("--launch", action="store_true", help="abre o launcher de jogos instalados na biblioteca")
+    ap.add_argument("--installed", action="store_true", help="lista jogos já baixados na máquina")
+    ap.add_argument("--set-emulator", nargs=2, metavar=("PLATFORM", "PATH"), help="define caminho customizado de um emulador")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
     ap.add_argument("--print-url", action="store_true", help="mostra o link direto e sai")
     ap.add_argument("--refresh", action="store_true", help="reconstrói o índice do catálogo")
@@ -94,6 +98,38 @@ def main() -> int:
 
     if args.platforms:
         write("  plataformas: " + ", ".join(sorted(PLATFORMS)))
+        return 0
+
+    if args.set_emulator:
+        plat, emu_path = args.set_emulator
+        reg = EmulatorRegistry()
+        reg.set_emulator_path(plat.lower(), emu_path)
+        write(f"  ✔ Emulador para '{plat}' configurado: {emu_path}")
+        return 0
+
+    outdir = Path(os.path.expanduser(args.out)).resolve()
+
+    if args.installed:
+        scanner = LibraryScanner(outdir)
+        library = scanner.scan_all()
+        total = sum(len(games) for games in library.values())
+        write(f"\n  🎮 Biblioteca Local ({total} jogos encontrados em {outdir}):\n")
+        if not library:
+            write("  Nenhum jogo encontrado na pasta.")
+            return 0
+        for pk, games in sorted(library.items()):
+            label = PLATFORM_LABELS.get(pk, pk.upper())
+            write(f"  [{label}] ({len(games)} jogos):")
+            for g in games:
+                write(f"    - {g.title} (.{g.extension}) [{human_size(g.size)}]")
+            write()
+        return 0
+
+    if args.launch:
+        if not _has_textual():
+            write("  ✖ Instale o textual para usar o launcher visual: pip install textual")
+            return 1
+        launch_launcher_tui(outdir)
         return 0
 
     key = (args.platform or "").lower().strip()
