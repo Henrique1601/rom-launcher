@@ -1,9 +1,13 @@
 """Testes unitários de validação e integridade de arquivos."""
 
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 from rom_cli.core.validator import validate_file, fix_magic_extension
 
 

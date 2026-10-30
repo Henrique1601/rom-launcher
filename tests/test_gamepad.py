@@ -1,6 +1,11 @@
 """Testes unitários para o módulo de Gamepad / XInput."""
 
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 from rom_cli.core.gamepad import GamepadController, DPAD_UP, BUTTON_A
 
 

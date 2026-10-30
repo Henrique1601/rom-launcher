@@ -1,8 +1,11 @@
 """Testes unitários para a Roleta Gamer."""
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rom_cli.core.roulette import pick_random_game
 

@@ -1,8 +1,11 @@
 """Testes unitários para o cliente RetroAchievements."""
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rom_cli.core.retroachievements import RetroAchievementsClient, RA_CONSOLE_IDS
 

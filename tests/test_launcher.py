@@ -1,8 +1,11 @@
 """Testes unitários para o módulo de Scanner e Registry do Launcher."""
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rom_cli.launcher.scanner import LibraryScanner
 from rom_cli.launcher.registry import EmulatorRegistry

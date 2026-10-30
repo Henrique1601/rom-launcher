@@ -33,3 +33,6 @@ htmlcov/
 
 *.part
 *.tmp
+Output/
+*.spec
+

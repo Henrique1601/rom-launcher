@@ -1,6 +1,11 @@
 """Testes unitários de utilitários e normalização."""
 
+import sys
 import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 from rom_cli.core.utils import norm, pretty_title, human_size, safe_name
 
 

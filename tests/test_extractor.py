@@ -1,9 +1,12 @@
 """Testes unitários para o módulo de extração automática."""
 
+import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rom_cli.core.extractor import extract_archive
 

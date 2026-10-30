@@ -1,8 +1,11 @@
 """Testes unitários para o Playtime Tracker e Scraper."""
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from rom_cli.core.tracker import PlaytimeTracker
 from rom_cli.core.scraper import sanitize_filename_for_url, get_cover_path

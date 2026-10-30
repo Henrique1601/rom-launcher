@@ -1,115 +1,177 @@
-# ROM Launcher & Downloader (rom-cli)
+# 🎮 ROM Launcher & Downloader (rom-cli)
 
-Plataforma completa de preservação, download e inicialização de jogos retrô e modernos para Windows, Linux e macOS. Inclui aplicativo desktop com interface gráfica moderna (**CustomTkinter**), interface de terminal (**Textual TUI**) e CLI rápida e scriptável.
+[![CI](https://github.com/Henrique1601/rom-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/Henrique1601/rom-launcher/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
 
----
-
-## 🎮 Plataformas Suportadas
-
-- **Nintendo:** Switch, Switch Ports (Homebrew), NES, SNES, N64, Game Boy (GB), Game Boy Color (GBC), Game Boy Advance (GBA), Nintendo DS (NDS), Nintendo 3DS, GameCube (GC), Wii.
-- **PlayStation:** PS1, PS2, PS3, PS4, PS5, PSP, PS Vita (PSV).
-- **Microsoft Xbox:** Xbox Clássico (OG), Xbox 360, Xbox Live Arcade (XBLA).
-- **Sega & Outros:** Sega Genesis / Mega Drive, Master System, Dreamcast, Saturn, Arcade (MAME / Neo Geo) e PC.
+> **Plataforma completa de preservação, download e inicialização de jogos clássicos e modernos.**  
+> Equipada com interface gráfica moderna no estilo **Playnite / RetroArch** (**CustomTkinter**), interface de terminal interativa (**Textual TUI**) e CLI ultrarrápida com motor paralelo multi-chunk.
 
 ---
 
-## 🚀 Como Usar o Aplicativo
+## ✨ Principais Funcionalidades
 
-### 1. Aplicativo Desktop com Interface Gráfica (Estilo Playnite / RetroArch)
-Você pode abrir o aplicativo desktop nativo:
-- Dando dois cliques no atalho **ROM Launcher** na sua Área de Trabalho ou Menu Iniciar.
-- Ou via comando:
-  ```bash
-  rom --gui
-  ```
-
-#### Recursos da Interface Gráfica:
-- **Modo Grade com Capas Oficiais (Box Art):** Baixa posters automaticamente via Libretro Thumbnails.
-- **Rastreador de Horas (Playtime Tracker):** Monitora a duração das sessões e tempo total jogado por jogo.
-- **Filtros e Ordenação:** Ordene por Nome, Mais Jogados, Jogados Recentemente ou Tamanho.
-- **Download Center:** Busca online integrada em provedores preservados (Myrient, Sony CDN, Archive.org, dlarchive).
-- **Configurador de Emuladores:** Localiza ou associa arquivos `.exe` personalizados para seus emuladores (Ryujinx, PCSX2, DuckStation, RPCS3, Dolphin, xemu, Xenia, RetroArch).
+- 🎮 **Suporte Completo a 28+ Plataformas:** Nintendo (Switch a NES), PlayStation (PS1 a PS5, PSP, Vita), Família Xbox (Xbox Original, Xbox 360, XBLA), Sega, Arcade e PC.
+- 🖼️ **Box Art Auto-Scraper:** Download automático de capas oficiais (2D/3D) via *Libretro Thumbnails* com cache local.
+- 🏆 **RetroAchievements Integrado:** Consulta de conquistas, badges, pontuação e progresso via API pública oficial do RetroAchievements.
+- 🕹️ **Couch / Gamepad Mode:** Navegação nativa por controle (Xbox/XInput via `ctypes`) para jogar direto do sofá com D-pad, botões A/B/X/Y e gatilhos.
+- 🎲 **Roleta Gamer (Gamer Roulette):** Sorteio inteligente de jogos da sua biblioteca que você ainda não jogou para vencer o backlog.
+- ⏱️ **Playtime Tracker:** Monitoramento em tempo real da duração de sessões e estatísticas de horas jogadas por título.
+- ⚡ **Downloader Multi-Chunk Paralelo:** Aceleração com múltiplos fluxos simultâneos (HTTP Range) e fallback seguro com barra de progresso.
+- 📦 **Extração Automática:** Descompacta automaticamente arquivos `.zip`, `.7z` e `.rar` logo após o download.
+- 💿 **Instalador Windows Nativo (Inno Setup):** Gera `ROM-Launcher-Setup.exe` profissional com assistente de instalação, atalhos e desinstalador.
+- 🧠 **Arquitetura .brain:** Sistema de documentação viva, decisões arquiteturais (ADRs), padrões de engenharia e memória persistente do projeto.
 
 ---
 
-### 2. Interface Terminal Interativa (TUI)
+## 🕹️ Plataformas Suportadas
+
+| Fabricante | Plataformas Suportadas |
+|---|---|
+| **Nintendo** | Switch, Switch Ports (Homebrew), NES, SNES, N64, Game Boy (GB), Game Boy Color (GBC), Game Boy Advance (GBA), Nintendo DS (NDS), Nintendo 3DS, GameCube (GC), Wii |
+| **PlayStation** | PS1 (PSX), PS2, PS3, PS4, PS5, PSP, PS Vita (PSV) |
+| **Microsoft** | Xbox Clássico (OG / XISO), Xbox 360 (XEX), Xbox Live Arcade (XBLA) |
+| **Sega & Outros** | Mega Drive / Genesis, Master System, Dreamcast, Saturn, Arcade (MAME / Neo Geo), PC |
+
+---
+
+## 🚀 Como Usar
+
+### 1. Aplicativo Desktop com Interface Gráfica (GUI)
+
+Abra pelo atalho na Área de Trabalho ou execute:
+```bash
+rom --gui
+```
+
+#### Recursos da GUI:
+- **Modo Grade (⊞) & Lista (☰):** Alterne visualização entre posters/capas oficiais ou lista detalhada com estatísticas de tempo de jogo.
+- **Roleta Gamer (🎲):** Clique no botão da roleta para sortear um jogo aleatório do seu acervo.
+- **Centro de Download:** Busca online instantânea integrada em múltiplos provedores preservados (Myrient, Internet Archive, Sony CDN, Dlpsgame).
+- **Gerenciador de Emuladores:** Detecção automática e vinculação de executáveis personalizados (Ryujinx, PCSX2, DuckStation, RPCS3, Dolphin, xemu, Xenia, RetroArch).
+
+---
+
+### 2. Interface Interativa de Terminal (TUI)
+
 ```bash
 rom                     # Abre a TUI interativa de busca online
-rom --launch            # Abre a TUI de gerenciamento da sua biblioteca local de jogos
+rom --launch            # Abre a TUI de navegação e lançamento da biblioteca local
 ```
 
 ---
 
-### 3. Comandos Rápidos de Terminal (CLI)
+### 3. Linha de Comando (CLI Scriptável)
+
 ```bash
-rom -p snes "metroid"                  # Busca focada em SNES
-rom -y -x --play -p ps2 "god of war"   # Baixa o melhor, extrai zip e abre no emulador direto!
-rom -p xbox "halo"                     # Busca no acervo de Xbox Clássico
-rom -p xbox360 "gears"                 # Busca no acervo de Xbox 360
-rom --installed                        # Lista todos os jogos já baixados na máquina
-rom --set-emulator ps2 "D:\pcsx2.exe"  # Define o caminho de um emulador portátil
-rom -l                                 # Lista todas as plataformas disponíveis
-rom --refresh                          # Reconstrói os índices e caches
+# Busca focada em SNES
+rom -p snes "metroid"
+
+# Baixa o melhor resultado, extrai o ZIP e lança no emulador configurado direto!
+rom -y -x --play -p ps2 "god of war"
+
+# Busca no acervo do Xbox Clássico e Xbox 360
+rom -p xbox "halo"
+rom -p xbox360 "gears of war"
+
+# Sorteia um jogo aleatório via Roleta Gamer no terminal
+rom --random
+rom --random -p snes
+
+# Lista jogos instalados na sua biblioteca local com estatísticas
+rom --installed
+
+# Configura o caminho do emulador portátil
+rom --set-emulator ps2 "D:\Emuladores\pcsx2.exe"
+
+# Lista todas as plataformas suportadas
+rom -l
+
+# Reconstrói caches locais e limpa arquivos temporários
+rom --refresh
 ```
 
 ---
 
 ## 📦 Instalação & Compilação
 
-### Instalador Desktop para Windows (Cria atalhos na Área de Trabalho e Menu Iniciar):
+### Opção A: Instalador Windows Setup (Inno Setup)
+Gera o instalador padrão do Windows (`ROM-Launcher-Setup.exe`):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-setup.ps1
+```
+
+### Opção B: Atalhos Desktop Silenciosos (Sem janela preta de console)
+Cria atalhos na Área de Trabalho e Menu Iniciar apontando para inicializador VBS silencioso:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install-desktop.ps1
 ```
 
-### Compilar Executável Único Standalone (.exe portátil sem precisar de Python):
+### Opção C: Compilar Executável Portátil Standalone (.exe)
+Gera `dist\ROM-Launcher.exe` que roda em qualquer computador sem precisar de Python instalado:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
 ```
-> O arquivo `dist\ROM-Launcher.exe` gerado roda em qualquer PC com Windows sem necessidade de Python instalado.
 
-### Instalação no Linux / macOS:
+### Opção D: Instalação via Python pip (Cross-Platform)
 ```bash
-chmod +x ./install.sh
-./install.sh
+git clone https://github.com/Henrique1601/rom-launcher.git
+cd rom-launcher
+pip install -e .[full]
 ```
 
 ---
 
-## 🏛️ Arquitetura do Projeto
+## 🧪 Suíte de Testes Automatizados
+
+O projeto conta com cobertura completa de testes unitários:
+
+```bash
+python -m unittest discover tests
+```
+
+- `test_validator.py`: Validação de cabeçalhos e magic bytes (`PFS0`, `PKG`, `XBEH`, `XEX2`, `PK`, `7z`).
+- `test_extractor.py`: Descompactação de arquivos `.zip`, `.7z` e `.rar`.
+- `test_launcher.py`: Localização de executáveis e montagem de comandos de emulador.
+- `test_tracker.py`: Cálculo de duração de sessões e persistência de playtime.
+- `test_retroachievements.py`: Conexão com API e tratamento de erros de rede.
+- `test_roulette.py`: Algoritmo de sorteio com priorização de títulos não jogados.
+- `test_gamepad.py`: Emulação e estrutura de estados dos botões XInput.
+- `test_utils.py`: Sanitização de nomes de arquivos e fallback para codificação `cp1252` no Windows.
+
+---
+
+## 🏛️ Arquitetura do Repositório
 
 ```
-rom/
-├── install-desktop.ps1         # Instalador Desktop com atalhos Windows
-├── build-exe.ps1               # Compilador Standalone .exe com PyInstaller
-├── install.ps1                 # Instalador CLI Windows
-├── install.sh                  # Instalador Unix
-├── pyproject.toml              # Metadados e dependências
+rom-launcher/
+├── .brain/                     # Memória persistente, ADRs e padrões de engenharia
+├── .github/workflows/          # Automação CI (testes) e Release (build de binários)
+├── build-exe.ps1               # Compilador Standalone PyInstaller
+├── build-setup.ps1             # Compilador de Setup Inno Setup
+├── install-desktop.ps1         # Instalador de atalhos silenciosos para Windows
+├── installer.iss               # Script Inno Setup Compiler
+├── pyproject.toml              # Metadados do pacote Python
 ├── src/rom_cli/
 │   ├── config.py               # Configurações globais e paths cross-platform
-│   ├── models.py               # Modelos e Dataclasses
-│   ├── main.py                 # Ponto de entrada CLI e roteamento
+│   ├── models.py               # Dataclass RomItem
+│   ├── main.py                 # CLI, parser de argumentos e roteamento
 │   ├── core/
-│   │   ├── downloader.py       # Motor multi-chunk paralelo com HTTP Range
+│   │   ├── downloader.py       # Motor multi-chunk HTTP Range paralelo
 │   │   ├── extractor.py        # Extração automática (.zip, .7z, .rar)
-│   │   ├── launcher.py         # Lançador e monitor de processos de emuladores
-│   │   ├── scraper.py          # Scraper de capas oficiais (Libretro Thumbnails)
-│   │   ├── tracker.py          # Rastreador de tempo jogado e estatísticas
-│   │   ├── ranking.py          # Algoritmo de relevância e popularidade Wikipedia
-│   │   ├── validator.py        # Validação de integridade e magic bytes (PFS0, PKG, XBE, XEX)
-│   │   └── utils.py            # Utilitários HTTP, codificação e strings
-│   ├── providers/              # Provedores modulares
-│   │   ├── myrient.py          # Acervo No-Intro e Redump do Myrient
-│   │   ├── archive_org.py      # Internet Archive (Xbox, Redump, Ports)
-│   │   ├── dlarchive.py        # API do DlArchive (Switch, PC, NDS, etc.)
-│   │   ├── nopaystation.py     # CDN oficial da Sony (PS3, Vita, PSP)
-│   │   ├── dlpsgame.py         # Dlpsgame (PS4, PS5)
-│   │   └── romsgames.py        # RomsGames
-│   ├── launcher/               # Módulos do Launcher de Jogos
-│   │   ├── scanner.py          # Scanner de ROMs locais na biblioteca
-│   │   ├── registry.py         # Registro e detecção de emuladores locais
-│   │   └── tui_launcher.py     # Launcher em modo terminal (Textual)
-│   └── gui/                    # Aplicativo Desktop Nativo (CustomTkinter)
-│       └── main_window.py      # Janela principal com biblioteca, capas e loja
+│   │   ├── gamepad.py          # Listener XInput de controles de videogame
+│   │   ├── launcher.py         # Monitor de processos de emuladores
+│   │   ├── ranking.py          # Algoritmo de busca e relevância Wikipedia
+│   │   ├── retroachievements.py# Integração oficial com RetroAchievements
+│   │   ├── roulette.py         # Sorteador inteligente de backlog
+│   │   ├── scraper.py          # Box art scraper (Libretro Thumbnails)
+│   │   ├── tracker.py          # Rastreador de tempo de jogo
+│   │   ├── validator.py        # Verificador de integridade de arquivos
+│   │   └── utils.py            # Utilitários seguros de string e I/O
+│   ├── providers/              # Provedores modulares de acervos de ROMs
+│   ├── launcher/               # Scanner de biblioteca e TUI
+│   └── gui/                    # Interface gráfica desktop CustomTkinter
 └── tests/                      # Suíte de testes unitários automatizados
 ```
 
@@ -117,4 +179,4 @@ rom/
 
 ## ⚖️ Aviso Legal
 
-Este software foi desenvolvido exclusivamente para fins de pesquisa, automação e preservação de mídias que você legalmente possua. Use com responsabilidade.
+Este software foi desenvolvido exclusivamente para fins educacionais, de pesquisa, interoperabilidade e preservação histórica de mídias legalmente adquiridas pelo usuário. Os autores não hospedam nem distribuem arquivos protegidos por direitos autorais.
