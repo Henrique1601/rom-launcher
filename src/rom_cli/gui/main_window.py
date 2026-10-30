@@ -6,6 +6,7 @@ import threading
 from pathlib import Path
 from tkinter import filedialog
 from typing import Dict, List, Optional
+from PIL import Image
 
 import customtkinter as ctk
 
@@ -14,6 +15,8 @@ from rom_cli.core.downloader import get_unique_path, stream_download
 from rom_cli.core.extractor import extract_archive
 from rom_cli.core.launcher import launch_game
 from rom_cli.core.ranking import rank, search_all
+from rom_cli.core.scraper import fetch_boxart, get_cover_path
+from rom_cli.core.tracker import TRACKER
 from rom_cli.core.utils import human_size, safe_name
 from rom_cli.core.validator import fix_magic_extension, validate_file
 from rom_cli.launcher.registry import DEFAULT_EMULATORS, EmulatorRegistry
@@ -40,6 +43,8 @@ class RomLauncherApp(ctk.CTk):
         # Dados da biblioteca e busca
         self.library: Dict[str, List[InstalledGame]] = {}
         self.current_library_platform = "all"
+        self.library_view_mode = "grid"  # 'grid' ou 'list'
+        self.cover_cache: Dict[str, ctk.CTkImage] = {}
         self.search_results: List[RomItem] = []
         self.is_downloading = False
 
@@ -154,16 +159,35 @@ class RomLauncherApp(ctk.CTk):
             placeholder_text="🔍 Filtrar jogos da biblioteca...",
             height=35
         )
-        self.library_search_entry.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        self.library_search_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
         self.library_search_entry.bind("<KeyRelease>", lambda e: self._render_library_cards())
 
         self.platform_filter_menu = ctk.CTkOptionMenu(
             top_bar,
             values=["Todas as Plataformas"],
             command=self._on_library_platform_changed,
+            height=35,
+            width=160
+        )
+        self.platform_filter_menu.grid(row=0, column=1, padx=(0, 8))
+
+        self.sort_menu = ctk.CTkOptionMenu(
+            top_bar,
+            values=["Nome (A-Z)", "Mais Jogados", "Jogados Recentemente", "Maior Tamanho"],
+            command=lambda c: self._render_library_cards(),
+            height=35,
+            width=150
+        )
+        self.sort_menu.grid(row=0, column=2, padx=(0, 8))
+
+        self.view_mode_segmented = ctk.CTkSegmentedButton(
+            top_bar,
+            values=["⊞ Grade", "☰ Lista"],
+            command=self._on_view_mode_changed,
             height=35
         )
-        self.platform_filter_menu.grid(row=0, column=1, sticky="e")
+        self.view_mode_segmented.set("⊞ Grade")
+        self.view_mode_segmented.grid(row=0, column=3)
 
         # Container rolável para os cards de jogos
         self.library_scroll = ctk.CTkScrollableFrame(self.view_library, fg_color="transparent")
@@ -178,6 +202,10 @@ class RomLauncherApp(ctk.CTk):
             text_color="gray70"
         )
         self.library_status.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+
+    def _on_view_mode_changed(self, mode: str):
+        self.library_view_mode = "grid" if "Grade" in mode else "list"
+        self._render_library_cards()
 
     def refresh_library(self):
         self.library = self.scanner.scan_all()
@@ -197,9 +225,7 @@ class RomLauncherApp(ctk.CTk):
         if choice == "Todas as Plataformas":
             self.current_library_platform = "all"
         else:
-            # Extrai o label
             label = choice.split(" (")[0]
-            # Mapeia de volta para pk
             for k, v in PLATFORM_LABELS.items():
                 if v == label:
                     self.current_library_platform = k
@@ -232,12 +258,31 @@ class RomLauncherApp(ctk.CTk):
             empty_lbl.pack(pady=40)
             return
 
+        # Ordenação
+        sort_by = self.sort_menu.get()
+        if sort_by == "Nome (A-Z)":
+            games.sort(key=lambda g: g.title.lower())
+        elif sort_by == "Mais Jogados":
+            games.sort(key=lambda g: TRACKER.get_stats(g.path.stem).get("total_seconds", 0), reverse=True)
+        elif sort_by == "Jogados Recentemente":
+            games.sort(key=lambda g: TRACKER.get_stats(g.path.stem).get("last_played", 0), reverse=True)
+        elif sort_by == "Maior Tamanho":
+            games.sort(key=lambda g: g.size, reverse=True)
+
+        if self.library_view_mode == "grid":
+            self._render_grid_view(games)
+        else:
+            self._render_list_view(games)
+
+    def _render_list_view(self, games: List[InstalledGame]):
         for game in games:
             card = ctk.CTkFrame(self.library_scroll, corner_radius=8, fg_color=("gray85", "gray20"))
             card.pack(fill="x", pady=5, padx=2)
             card.grid_columnconfigure(0, weight=1)
 
-            # Informações do jogo
+            playtime = TRACKER.format_playtime(game.path.stem)
+            last_played = TRACKER.format_last_played(game.path.stem)
+
             info_frame = ctk.CTkFrame(card, fg_color="transparent")
             info_frame.grid(row=0, column=0, sticky="w", padx=15, pady=10)
 
@@ -251,14 +296,13 @@ class RomLauncherApp(ctk.CTk):
 
             sub_lbl = ctk.CTkLabel(
                 info_frame,
-                text=f"{game.platform_label}  •  Formato: .{game.extension}  •  Tamanho: {human_size(game.size)}",
+                text=f"{game.platform_label}  •  Formato: .{game.extension}  •  Tam: {human_size(game.size)}  •  ⏱️ {playtime}  •  Última vez: {last_played}",
                 font=ctk.CTkFont(size=12),
                 text_color="gray70",
                 anchor="w"
             )
             sub_lbl.pack(anchor="w")
 
-            # Botão Jogar
             btn_play = ctk.CTkButton(
                 card,
                 text="▶ JOGAR",
@@ -271,6 +315,88 @@ class RomLauncherApp(ctk.CTk):
             )
             btn_play.grid(row=0, column=1, padx=15, pady=10, sticky="e")
 
+    def _render_grid_view(self, games: List[InstalledGame]):
+        cols = 4
+        for c in range(cols):
+            self.library_scroll.grid_columnconfigure(c, weight=1)
+
+        for i, game in enumerate(games):
+            r = i // cols
+            c = i % cols
+
+            card = ctk.CTkFrame(self.library_scroll, corner_radius=10, fg_color=("gray85", "gray20"))
+            card.grid(row=r, column=c, padx=8, pady=8, sticky="nsew")
+
+            # Box Art (Poster)
+            cover_frame = ctk.CTkFrame(card, width=130, height=180, corner_radius=6, fg_color=("gray75", "gray25"))
+            cover_frame.pack(padx=10, pady=(10, 6))
+            cover_frame.pack_propagate(False)
+
+            img_label = ctk.CTkLabel(cover_frame, text="🎮", font=ctk.CTkFont(size=32))
+            img_label.pack(expand=True, fill="both")
+
+            # Tenta carregar imagem da capa (cache ou local)
+            self._load_card_cover(game, img_label)
+
+            # Título resumido
+            display_title = game.title if len(game.title) <= 24 else game.title[:22] + "…"
+            title_lbl = ctk.CTkLabel(card, text=display_title, font=ctk.CTkFont(size=13, weight="bold"))
+            title_lbl.pack(padx=8, pady=(0, 2))
+
+            # Detalhes (Plataforma + Tempo jogado)
+            playtime = TRACKER.format_playtime(game.path.stem)
+            meta_lbl = ctk.CTkLabel(
+                card,
+                text=f"{game.platform_label}\n⏱️ {playtime}",
+                font=ctk.CTkFont(size=11),
+                text_color="gray70"
+            )
+            meta_lbl.pack(padx=8, pady=(0, 6))
+
+            btn_play = ctk.CTkButton(
+                card,
+                text="▶ JOGAR",
+                height=30,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                fg_color="#28a745",
+                hover_color="#218838",
+                command=lambda g=game: self._launch_game_action(g)
+            )
+            btn_play.pack(fill="x", padx=12, pady=(0, 10))
+
+    def _load_card_cover(self, game: InstalledGame, label: ctk.CTkLabel):
+        cache_key = f"{game.platform_key}_{game.path.stem}"
+        if cache_key in self.cover_cache:
+            label.configure(image=self.cover_cache[cache_key], text="")
+            return
+
+        disk_path = get_cover_path(game.title, game.platform_key)
+        if disk_path.exists():
+            try:
+                with Image.open(disk_path) as img:
+                    img_res = img.resize((125, 175), Image.Resampling.LANCZOS)
+                    ctk_img = ctk.CTkImage(light_image=img_res, dark_image=img_res, size=(125, 175))
+                    self.cover_cache[cache_key] = ctk_img
+                    label.configure(image=ctk_img, text="")
+                    return
+            except Exception:
+                pass
+
+        # Dispara busca assíncrona na nuvem (Libretro Thumbnails)
+        threading.Thread(target=self._async_fetch_cover, args=(game, label, cache_key), daemon=True).start()
+
+    def _async_fetch_cover(self, game: InstalledGame, label: ctk.CTkLabel, cache_key: str):
+        path = fetch_boxart(game.title, game.platform_key)
+        if path and path.exists():
+            try:
+                with Image.open(path) as img:
+                    img_res = img.resize((125, 175), Image.Resampling.LANCZOS)
+                    ctk_img = ctk.CTkImage(light_image=img_res, dark_image=img_res, size=(125, 175))
+                    self.cover_cache[cache_key] = ctk_img
+                    self.after(0, lambda: label.configure(image=ctk_img, text=""))
+            except Exception:
+                pass
+
     def _launch_game_action(self, game: InstalledGame):
         emu = self.registry.find_emulator(game.platform_key)
         if not emu:
@@ -280,9 +406,13 @@ class RomLauncherApp(ctk.CTk):
             return
 
         self.library_status.configure(text=f"🚀 Iniciando {game.title} via {emu.name}...")
-        success = launch_game(game.path, game.platform_key)
+
+        def on_end(duration_sec):
+            self.after(0, self.refresh_library)
+
+        success = launch_game(game.path, game.platform_key, on_session_end=on_end)
         if success:
-            self.library_status.configure(text=f"✔ {game.title} em execução!")
+            self.library_status.configure(text=f"✔ {game.title} em execução! Monitorando sessão...")
         else:
             self.library_status.configure(text=f"✖ Falha ao abrir emulador {emu}")
 

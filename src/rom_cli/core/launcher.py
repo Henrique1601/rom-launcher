@@ -1,10 +1,14 @@
-"""Detector e executor de emuladores locais (xemu, RPCS3, PCSX2, Dolphin, DuckStation, Ryujinx, etc.)."""
+"""Detector e executor de emuladores locais com monitoramento de tempo de jogo."""
 
 import os
 import shutil
 import subprocess
+import threading
+import time
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Callable
+
+from rom_cli.core.tracker import TRACKER
 
 
 EMULATOR_CANDIDATES = {
@@ -22,6 +26,15 @@ EMULATOR_CANDIDATES = {
 
 def find_emulator(platform_key: str) -> Optional[Path]:
     """Tenta localizar o emulador instalado no PATH ou em diretórios comuns de programas."""
+    # 1. Verifica se há caminho configurado no EmulatorRegistry
+    try:
+        from rom_cli.launcher.registry import EmulatorRegistry
+        reg_emu = EmulatorRegistry().find_emulator(platform_key)
+        if reg_emu:
+            return reg_emu
+    except Exception:
+        pass
+
     candidates = EMULATOR_CANDIDATES.get(platform_key, [])
     for exe_name, common_paths in candidates:
         which_path = shutil.which(exe_name)
@@ -48,14 +61,25 @@ def find_emulator(platform_key: str) -> Optional[Path]:
     return None
 
 
-def launch_game(rom_path: Path, platform_key: str) -> bool:
-    """Abre a ROM baixada diretamente com o emulador correspondente."""
+def launch_game(rom_path: Path, platform_key: str, on_session_end: Optional[Callable[[int], None]] = None) -> bool:
+    """Abre a ROM baixada diretamente com o emulador correspondente e monitora o tempo jogado."""
     emu_path = find_emulator(platform_key)
     if not emu_path:
         return False
 
     try:
-        subprocess.Popen([str(emu_path), str(rom_path)])
+        proc = subprocess.Popen([str(emu_path), str(rom_path)])
+        start_time = time.time()
+        game_key = rom_path.stem
+
+        def monitor():
+            proc.wait()
+            duration = int(time.time() - start_time)
+            TRACKER.record_session(game_key, duration)
+            if on_session_end:
+                on_session_end(duration)
+
+        threading.Thread(target=monitor, daemon=True).start()
         return True
     except Exception:
         return False
