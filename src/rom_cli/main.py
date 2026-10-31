@@ -194,7 +194,8 @@ def main() -> int:
                   " — o TUI (rom) navega tudo")
             return 0
 
-        if not sys.stdin.isatty() or not _has_textual():
+        is_interactive = bool(sys.stdin and hasattr(sys.stdin, "isatty") and sys.stdin.isatty())
+        if not is_interactive or not _has_textual():
             write("  digite: rom -p switch \"nome do jogo\"   (ou rom -l)")
             return 0
 
@@ -242,7 +243,8 @@ def main() -> int:
             write()
         return 0
 
-    if args.yes or not sys.stdin.isatty() or not _has_textual():
+    is_interactive = bool(sys.stdin and hasattr(sys.stdin, "isatty") and sys.stdin.isatty())
+    if args.yes or not is_interactive or not _has_textual():
         show_results(results, args.number)
         return run_cli_download(results[:1], outdir, auto_extract=args.extract, play=args.play)
 

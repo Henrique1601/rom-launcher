@@ -1,3 +1,14 @@
-"""rom_cli - CLI e TUI para busca e download de ROMs."""
+"""rom_cli - CLI, TUI e GUI Desktop para busca, download e gerenciamento de ROMs."""
 
-__version__ = "0.2.0"
+import io
+import sys
+
+# Protege ambientes GUI do Windows (--noconsole / pythonw) onde stdio pode ser None
+if sys.stdout is None:
+    sys.stdout = io.StringIO()
+if sys.stderr is None:
+    sys.stderr = io.StringIO()
+if sys.stdin is None:
+    sys.stdin = io.StringIO()
+
+__version__ = "0.2.1"

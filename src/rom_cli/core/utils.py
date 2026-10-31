@@ -1,6 +1,7 @@
 """Utilitários gerais para manipulação de strings, requisições HTTP e formatação."""
 
 import html as htmllib
+import io
 import re
 import sys
 import time
@@ -12,23 +13,38 @@ from typing import List, Tuple, Optional, Dict, Any
 
 from rom_cli.config import UA, STOP_WORDS, ROM_EXTS, PLATFORM_LABELS
 
-TTY = sys.stdout.isatty()
+# Proteção contra ambientes sem console no Windows (PyInstaller --noconsole, pythonw, etc.)
+if sys.stdout is None:
+    sys.stdout = io.StringIO()
+if sys.stderr is None:
+    sys.stderr = io.StringIO()
+if sys.stdin is None:
+    sys.stdin = io.StringIO()
+
+TTY = bool(sys.stdout and hasattr(sys.stdout, "isatty") and sys.stdout.isatty())
 EXT_RE = re.compile(r"\.(" + "|".join(ROM_EXTS) + r")$", re.I)
 
 
 def write(text: str = "", newline: bool = True) -> None:
+    if sys.stdout is None:
+        return
     try:
         sys.stdout.write(text)
         if newline and not text.endswith("\n"):
             sys.stdout.write("\n")
-        sys.stdout.flush()
+        if hasattr(sys.stdout, "flush"):
+            sys.stdout.flush()
     except UnicodeEncodeError:
         # Fallback para terminais Windows (cp1252) que não suportam certos emojis
-        safe_text = text.encode(sys.stdout.encoding or "ascii", errors="replace").decode(sys.stdout.encoding or "ascii")
+        encoding = getattr(sys.stdout, "encoding", None) or "ascii"
+        safe_text = text.encode(encoding, errors="replace").decode(encoding)
         sys.stdout.write(safe_text)
         if newline and not safe_text.endswith("\n"):
             sys.stdout.write("\n")
-        sys.stdout.flush()
+        if hasattr(sys.stdout, "flush"):
+            sys.stdout.flush()
+    except Exception:
+        pass
 
 
 def status(msg: str) -> None:

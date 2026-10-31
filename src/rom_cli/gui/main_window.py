@@ -1,12 +1,22 @@
 """Janela principal do ROM Launcher Desktop (GUI nativa em CustomTkinter)."""
 
+import io
 import os
 import subprocess
+import sys
 import threading
 from pathlib import Path
 from tkinter import filedialog
 from typing import Dict, List, Optional
 from PIL import Image
+
+# Protege ambientes sem console no Windows (PyInstaller --noconsole / pythonw)
+if sys.stdout is None:
+    sys.stdout = io.StringIO()
+if sys.stderr is None:
+    sys.stderr = io.StringIO()
+if sys.stdin is None:
+    sys.stdin = io.StringIO()
 
 import customtkinter as ctk
 
