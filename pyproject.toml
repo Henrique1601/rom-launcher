@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rom-cli"
-version = "0.2.1"
+version = "0.3.0"
 description = "Next-gen ROM Downloader, Preservation Hub & Desktop GUI Launcher with RetroAchievements, Gamepad Mode & Roulette"
 readme = "README.md"
 authors = [

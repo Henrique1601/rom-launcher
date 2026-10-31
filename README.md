@@ -13,6 +13,10 @@
 ## ✨ Principais Funcionalidades
 
 - 🎮 **Suporte Completo a 28+ Plataformas:** Nintendo (Switch a NES), PlayStation (PS1 a PS5, PSP, Vita), Família Xbox (Xbox Original, Xbox 360, XBLA), Sega, Arcade e PC.
+- 💾 **Save-Sync & Backup de Memory Cards:** Snapshots automáticos de saves ao encerrar sessões (PCSX2, Dolphin, DuckStation, RPCS3, Ryujinx, RetroArch).
+- 🇧🇷 **Auto-Patcher de Traduções PT-BR:** Aplica patches `.ips` e `.bps` de fãs brasileiros diretamente na ROM com 1 clique (na GUI ou CLI).
+- 🌐 **Discord Rich Presence Nativo:** Mostra em tempo real no seu perfil do Discord qual jogo e console você está jogando, com poster oficial e tempo de sessão.
+- 🔍 **Auditor de BIOS de Emuladores:** Diagnostica a integridade e presença de BIOS/Firmwares (PS1, PS2, PS3, Switch, Xbox).
 - 🖼️ **Box Art Auto-Scraper:** Download automático de capas oficiais (2D/3D) via *Libretro Thumbnails* com cache local.
 - 🏆 **RetroAchievements Integrado:** Consulta de conquistas, badges, pontuação e progresso via API pública oficial do RetroAchievements.
 - 🕹️ **Couch / Gamepad Mode:** Navegação nativa por controle (Xbox/XInput via `ctypes`) para jogar direto do sofá com D-pad, botões A/B/X/Y e gatilhos.
@@ -74,6 +78,15 @@ rom -y -x --play -p ps2 "god of war"
 # Busca no acervo do Xbox Clássico e Xbox 360
 rom -p xbox "halo"
 rom -p xbox360 "gears of war"
+
+# Audita se as BIOS e Firmwares dos emuladores estão instalados corretamente
+rom --check-bios
+
+# Aplica patch de tradução (IPS ou BPS) diretamente na ROM
+rom --patch "Super Mario World.sfc" "traducao_ptbr.ips"
+
+# Lista snapshots de backup de saves e memory cards
+rom --backups
 
 # Sorteia um jogo aleatório via Roleta Gamer no terminal
 rom --random

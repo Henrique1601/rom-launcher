@@ -88,6 +88,9 @@ def main() -> int:
     ap.add_argument("--launch", action="store_true", help="abre o launcher de jogos instalados na biblioteca")
     ap.add_argument("--gui", action="store_true", help="abre o aplicativo Desktop completo com janela gráfica")
     ap.add_argument("--random", "--roulette", dest="roulette", action="store_true", help="sorteia e abre um jogo aleatório da sua biblioteca")
+    ap.add_argument("--check-bios", action="store_true", help="audita e verifica se as pastas de BIOS dos emuladores estão completas")
+    ap.add_argument("--patch", nargs=2, metavar=("ROM", "PATCH"), help="aplica patch de tradução (IPS ou BPS) diretamente na ROM")
+    ap.add_argument("--backups", action="store_true", help="lista snapshots de backup de saves e memory cards")
     ap.add_argument("--installed", action="store_true", help="lista jogos já baixados na máquina")
     ap.add_argument("--set-emulator", nargs=2, metavar=("PLATFORM", "PATH"), help="define caminho customizado de um emulador")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
@@ -107,6 +110,45 @@ def main() -> int:
         reg = EmulatorRegistry()
         reg.set_emulator_path(plat.lower(), emu_path)
         write(f"  ✔ Emulador para '{plat}' configurado: {emu_path}")
+        return 0
+
+    if args.check_bios:
+        from rom_cli.core.bios_checker import audit_all_bios
+        write("\n  🔍 Auditoria de BIOS e Firmwares de Emuladores:\n")
+        audits = audit_all_bios()
+        for a in audits:
+            mark = "[OK]" if a["status"] == "ok" else "[X]"
+            write(f"  {mark} {a['name']}")
+            write(f"     Status: {a['message']}")
+            write(f"     Diretório: {a.get('bios_dir', 'N/A')}")
+            matched = a.get("matched", [])
+            if matched:
+                write(f"     Arquivos identificados: {', '.join(matched)}")
+            write()
+        return 0
+
+    if args.patch:
+        rom_file, patch_file = args.patch
+        from rom_cli.core.patcher import apply_patch
+        try:
+            write(f"  🔧 Aplicando patch {patch_file} em {rom_file}...")
+            out = apply_patch(rom_file, patch_file)
+            write(f"  ✔ Patch aplicado com sucesso! Nova ROM gerada em: {out}")
+            return 0
+        except Exception as e:
+            write(f"  ✖ Falha ao aplicar patch: {e}")
+            return 1
+
+    if args.backups:
+        from rom_cli.core.savesync import list_save_backups
+        backups = list_save_backups()
+        write(f"\n  💾 Backups de Saves e Memory Cards ({len(backups)} snapshots):\n")
+        if not backups:
+            write("  Nenhum backup encontrado ainda.")
+            return 0
+        for b in backups:
+            write(f"  [{b['platform'].upper()}] {b['filename']} ({human_size(b['size_bytes'])}) - {b['created_at']}")
+        write()
         return 0
 
     outdir = Path(os.path.expanduser(args.out)).resolve()

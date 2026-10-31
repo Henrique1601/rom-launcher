@@ -121,6 +121,15 @@ class RomLauncherApp(ctk.CTk):
         )
         self.btn_nav_emulators.grid(row=3, column=0, padx=15, pady=6, sticky="ew")
 
+        self.btn_nav_saves = ctk.CTkButton(
+            self.sidebar,
+            text="💾 Saves & Backups",
+            height=36,
+            anchor="w",
+            command=lambda: self._select_tab("saves")
+        )
+        self.btn_nav_saves.grid(row=4, column=0, padx=15, pady=6, sticky="ew")
+
         self.btn_open_folder = ctk.CTkButton(
             self.sidebar,
             text="📁 Abrir Pasta de ROMs",
@@ -141,17 +150,20 @@ class RomLauncherApp(ctk.CTk):
         self._build_library_view()
         self._build_store_view()
         self._build_emulators_view()
+        self._build_saves_view()
 
     def _select_tab(self, tab_name: str):
         self.view_library.grid_forget()
         self.view_store.grid_forget()
         self.view_emulators.grid_forget()
+        self.view_saves.grid_forget()
 
         # Reseta estilos dos botões de navegação
         for btn, name in [
             (self.btn_nav_library, "library"),
             (self.btn_nav_store, "store"),
-            (self.btn_nav_emulators, "emulators")
+            (self.btn_nav_emulators, "emulators"),
+            (self.btn_nav_saves, "saves"),
         ]:
             if name == tab_name:
                 btn.configure(fg_color=["#3a7ebf", "#1f538d"], text_color="#ffffff")
@@ -166,6 +178,9 @@ class RomLauncherApp(ctk.CTk):
         elif tab_name == "emulators":
             self.view_emulators.grid(row=0, column=0, sticky="nsew")
             self._refresh_emulators_list()
+        elif tab_name == "saves":
+            self.view_saves.grid(row=0, column=0, sticky="nsew")
+            self._refresh_saves_list()
 
     # ==========================================
     # VIEW 1: BIBLIOTECA (INSTALLED GAMES)
@@ -341,17 +356,32 @@ class RomLauncherApp(ctk.CTk):
             sub_lbl.pack(anchor="w")
             self._load_card_achievements(game, sub_lbl)
 
+            actions_frame = ctk.CTkFrame(card, fg_color="transparent")
+            actions_frame.grid(row=0, column=1, padx=15, pady=10, sticky="e")
+
+            btn_patch = ctk.CTkButton(
+                actions_frame,
+                text="🔧 Traduzir",
+                width=85,
+                height=34,
+                font=ctk.CTkFont(size=12),
+                fg_color=("gray75", "gray35"),
+                hover_color=("gray65", "gray45"),
+                command=lambda g=game: self._apply_patch_action(g)
+            )
+            btn_patch.pack(side="left", padx=(0, 8))
+
             btn_play = ctk.CTkButton(
-                card,
+                actions_frame,
                 text="▶ JOGAR",
-                width=110,
+                width=100,
                 height=34,
                 font=ctk.CTkFont(size=13, weight="bold"),
                 fg_color="#28a745",
                 hover_color="#218838",
                 command=lambda g=game: self._launch_game_action(g)
             )
-            btn_play.grid(row=0, column=1, padx=15, pady=10, sticky="e")
+            btn_play.pack(side="left")
 
     def _render_grid_view(self, games: List[InstalledGame]):
         cols = 4
@@ -499,6 +529,21 @@ class RomLauncherApp(ctk.CTk):
             self.library_status.configure(text=f"✔ {game.title} em execução! Monitorando sessão...")
         else:
             self.library_status.configure(text=f"✖ Falha ao abrir emulador {emu}")
+
+    def _apply_patch_action(self, game: InstalledGame):
+        patch_file = filedialog.askopenfilename(
+            title=f"Selecione o patch de tradução para {game.title}",
+            filetypes=[("Patches de Tradução (*.ips;*.bps)", "*.ips;*.bps"), ("Todos os arquivos", "*.*")]
+        )
+        if not patch_file:
+            return
+        try:
+            from rom_cli.core.patcher import apply_patch
+            out_rom = apply_patch(game.path, patch_file)
+            self.library_status.configure(text=f"✔ Tradução aplicada com sucesso! Gerado: {out_rom.name}")
+            self.refresh_library()
+        except Exception as e:
+            self.library_status.configure(text=f"✖ Erro ao aplicar patch: {e}")
 
     # ==========================================
     # VIEW 2: LOJA / DOWNLOAD CENTER (ONLINE)
@@ -745,6 +790,21 @@ class RomLauncherApp(ctk.CTk):
             ctk.CTkLabel(txt_frame, text=title_text, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").pack(anchor="w")
             ctk.CTkLabel(txt_frame, text=status_text, font=ctk.CTkFont(size=11), text_color=status_color, anchor="w").pack(anchor="w")
 
+            from rom_cli.core.bios_checker import audit_bios
+            bios_info = audit_bios(pk)
+            if bios_info.get("status") == "ok":
+                bios_txt = "🟢 BIOS detectada e pronta"
+                bios_clr = "#28a745"
+            elif bios_info.get("status") in ("missing_bios", "missing_folder"):
+                bios_txt = f"🔴 {bios_info['message']}"
+                bios_clr = "#e06c75"
+            else:
+                bios_txt = ""
+                bios_clr = "gray50"
+
+            if bios_txt:
+                ctk.CTkLabel(txt_frame, text=bios_txt, font=ctk.CTkFont(size=11), text_color=bios_clr, anchor="w").pack(anchor="w")
+
             btn_browse = ctk.CTkButton(
                 card,
                 text="Selecionar .exe",
@@ -762,6 +822,112 @@ class RomLauncherApp(ctk.CTk):
         if path:
             self.registry.set_emulator_path(platform_key, path)
             self._refresh_emulators_list()
+
+    # ==========================================
+    # VIEW 4: GERENCIADOR DE SAVES & BACKUPS
+    # ==========================================
+    def _build_saves_view(self):
+        self.view_saves = ctk.CTkFrame(self.main_container, fg_color="transparent")
+        self.view_saves.grid_rowconfigure(1, weight=1)
+        self.view_saves.grid_columnconfigure(0, weight=1)
+
+        top_bar = ctk.CTkFrame(self.view_saves, fg_color="transparent")
+        top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 15))
+        top_bar.grid_columnconfigure(0, weight=1)
+
+        header = ctk.CTkLabel(
+            top_bar,
+            text="💾 Backups de Saves e Memory Cards",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        header.grid(row=0, column=0, sticky="w")
+
+        btn_refresh = ctk.CTkButton(
+            top_bar,
+            text="🔄 Atualizar",
+            width=100,
+            command=self._refresh_saves_list
+        )
+        btn_refresh.grid(row=0, column=1, padx=(0, 8))
+
+        btn_open_saves = ctk.CTkButton(
+            top_bar,
+            text="📁 Abrir Pasta de Backups",
+            width=160,
+            command=self._open_saves_folder
+        )
+        btn_open_saves.grid(row=0, column=2)
+
+        self.saves_scroll = ctk.CTkScrollableFrame(self.view_saves, fg_color="transparent")
+        self.saves_scroll.grid(row=1, column=0, sticky="nsew")
+        self.saves_scroll.grid_columnconfigure(0, weight=1)
+
+    def _open_saves_folder(self):
+        from rom_cli.core.savesync import SAVES_BACKUP_DIR
+        SAVES_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        if os.name == "nt":
+            os.startfile(str(SAVES_BACKUP_DIR))
+        else:
+            subprocess.run(["xdg-open", str(SAVES_BACKUP_DIR)])
+
+    def _refresh_saves_list(self):
+        for widget in self.saves_scroll.winfo_children():
+            widget.destroy()
+
+        from rom_cli.core.savesync import list_save_backups
+        backups = list_save_backups()
+
+        if not backups:
+            empty_lbl = ctk.CTkLabel(
+                self.saves_scroll,
+                text="Nenhum snapshot de save encontrado.\nAo jogar e encerrar uma sessão de emulador, um backup automático será criado aqui!",
+                font=ctk.CTkFont(size=13),
+                text_color="gray60"
+            )
+            empty_lbl.pack(pady=40)
+            return
+
+        for b in backups:
+            card = ctk.CTkFrame(self.saves_scroll, corner_radius=8, fg_color=("gray85", "gray20"))
+            card.pack(fill="x", pady=5, padx=2)
+            card.grid_columnconfigure(0, weight=1)
+
+            txt_frame = ctk.CTkFrame(card, fg_color="transparent")
+            txt_frame.grid(row=0, column=0, sticky="w", padx=15, pady=8)
+
+            plat_label = PLATFORM_LABELS.get(b["platform"], b["platform"].upper())
+            ctk.CTkLabel(
+                txt_frame,
+                text=f"{plat_label}  •  {b['filename']}",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                anchor="w"
+            ).pack(anchor="w")
+
+            ctk.CTkLabel(
+                txt_frame,
+                text=f"Tamanho: {human_size(b['size_bytes'])}  •  Data: {b['created_at']}",
+                font=ctk.CTkFont(size=11),
+                text_color="gray70",
+                anchor="w"
+            ).pack(anchor="w")
+
+            btn_restore = ctk.CTkButton(
+                card,
+                text="↺ Restaurar",
+                width=100,
+                height=30,
+                fg_color="#17a2b8",
+                hover_color="#138496",
+                command=lambda p=b["path"]: self._restore_save_action(p)
+            )
+            btn_restore.grid(row=0, column=1, padx=15, pady=8, sticky="e")
+
+    def _restore_save_action(self, zip_path: str):
+        from rom_cli.core.savesync import restore_save_backup
+        if restore_save_backup(zip_path):
+            self.library_status.configure(text=f"✔ Save restaurado com sucesso a partir de {Path(zip_path).name}!")
+        else:
+            self.library_status.configure(text=f"✖ Falha ao restaurar save.")
 
     def _open_roms_folder(self):
         self.outdir.mkdir(parents=True, exist_ok=True)

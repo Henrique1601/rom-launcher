@@ -8,6 +8,9 @@ import time
 from pathlib import Path
 from typing import Optional, Callable
 
+from rom_cli.config import PLATFORM_LABELS
+from rom_cli.core.discord_rpc import DISCORD
+from rom_cli.core.savesync import create_save_backup
 from rom_cli.core.tracker import TRACKER
 
 
@@ -62,7 +65,7 @@ def find_emulator(platform_key: str) -> Optional[Path]:
 
 
 def launch_game(rom_path: Path, platform_key: str, on_session_end: Optional[Callable[[int], None]] = None) -> bool:
-    """Abre a ROM baixada diretamente com o emulador correspondente e monitora o tempo jogado."""
+    """Abre a ROM baixada diretamente com o emulador correspondente, atualiza Discord RPC e cria backup de saves."""
     emu_path = find_emulator(platform_key)
     if not emu_path:
         return False
@@ -71,10 +74,31 @@ def launch_game(rom_path: Path, platform_key: str, on_session_end: Optional[Call
         proc = subprocess.Popen([str(emu_path), str(rom_path)])
         start_time = time.time()
         game_key = rom_path.stem
+        plat_label = PLATFORM_LABELS.get(platform_key, platform_key.upper())
+
+        # Atualiza o status no Discord Rich Presence
+        try:
+            DISCORD.update_game_activity(game_key, plat_label)
+        except Exception:
+            pass
 
         def monitor():
             proc.wait()
             duration = int(time.time() - start_time)
+
+            # Limpa status do Discord
+            try:
+                DISCORD.clear_activity()
+            except Exception:
+                pass
+
+            # Cria snapshot automático de save game / memory card
+            try:
+                create_save_backup(platform_key, game_key)
+            except Exception:
+                pass
+
+            # Registra estatísticas de playtime
             TRACKER.record_session(game_key, duration)
             if on_session_end:
                 on_session_end(duration)
