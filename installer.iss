@@ -1,11 +1,11 @@
-; Script de Instalador Inno Setup para o ROM Launcher Desktop
+; Script de Instalador Inno Setup para o EmuCraft Desktop
 ; Baixe o Inno Setup gratuitamente em: https://jrsoftware.org/isdl.php
 
-#define MyAppName "ROM Launcher"
+#define MyAppName "EmuCraft"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "ROM Community"
-#define MyAppURL "https://github.com"
-#define MyAppExeName "ROM-Launcher.exe"
+#define MyAppPublisher "EmuCraft Community"
+#define MyAppURL "https://github.com/Henrique1601/emucraft"
+#define MyAppExeName "EmuCraft.exe"
 
 [Setup]
 AppId={{9B7D25E4-7E2A-4C26-8B2A-2D8F8F9B6E1A}
@@ -19,7 +19,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=dist
-OutputBaseFilename=ROM-Launcher-Setup
+OutputBaseFilename=EmuCraft-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

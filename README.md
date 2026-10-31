@@ -1,18 +1,19 @@
-# 🎮 ROM Launcher & Downloader (rom-cli)
+# 🎮 EmuCraft (rom-cli)
 
-[![CI](https://github.com/Henrique1601/rom-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/Henrique1601/rom-launcher/actions/workflows/ci.yml)
+[![CI](https://github.com/Henrique1601/emucraft/actions/workflows/ci.yml/badge.svg)](https://github.com/Henrique1601/emucraft/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
 
-> **Plataforma completa de preservação, download e inicialização de jogos clássicos e modernos.**  
-> Equipada com interface gráfica moderna no estilo **Playnite / RetroArch** (**CustomTkinter**), interface de terminal interativa (**Textual TUI**) e CLI ultrarrápida com motor paralelo multi-chunk.
+> **EmuCraft — Plataforma gamer completa de preservação, download e inicialização de jogos clássicos e modernos.**  
+> Equipada com interface gráfica moderna no estilo **Liquid Glass & Motion** (**CustomTkinter**), interface de terminal interativa (**Textual TUI**) e CLI ultrarrápida com motor paralelo multi-chunk.
 
 ---
 
 ## ✨ Principais Funcionalidades
 
 - 🎮 **Suporte Completo a 28+ Plataformas:** Nintendo (Switch a NES), PlayStation (PS1 a PS5, PSP, Vita), Família Xbox (Xbox Original, Xbox 360, XBLA), Sega, Arcade e PC.
+- 💎 **Interface Gamer Liquid Glass & Motion:** Hero Banner dinâmico com arte panorâmica, barra de filtros rápidos (Pills), hover glow neon e feedback sonoro de micro-interações.
 - 💾 **Save-Sync & Backup de Memory Cards:** Snapshots automáticos de saves ao encerrar sessões (PCSX2, Dolphin, DuckStation, RPCS3, Ryujinx, RetroArch).
 - 🇧🇷 **Auto-Patcher de Traduções PT-BR:** Aplica patches `.ips` e `.bps` de fãs brasileiros diretamente na ROM com 1 clique (na GUI ou CLI).
 - 🌐 **Discord Rich Presence Nativo:** Mostra em tempo real no seu perfil do Discord qual jogo e console você está jogando, com poster oficial e tempo de sessão.
@@ -24,7 +25,7 @@
 - ⏱️ **Playtime Tracker:** Monitoramento em tempo real da duração de sessões e estatísticas de horas jogadas por título.
 - ⚡ **Downloader Multi-Chunk Paralelo:** Aceleração com múltiplos fluxos simultâneos (HTTP Range) e fallback seguro com barra de progresso.
 - 📦 **Extração Automática:** Descompacta automaticamente arquivos `.zip`, `.7z` e `.rar` logo após o download.
-- 💿 **Instalador Windows Nativo (Inno Setup):** Gera `ROM-Launcher-Setup.exe` profissional com assistente de instalação, atalhos e desinstalador.
+- 💿 **Instalador Oficial Windows Standalone (`EmuCraft-Setup.exe`):** Assistente de instalação completo em 4 passos com atalhos e desinstalador registrado no Windows.
 - 🧠 **Arquitetura .brain:** Sistema de documentação viva, decisões arquiteturais (ADRs), padrões de engenharia e memória persistente do projeto.
 
 ---
@@ -46,10 +47,12 @@
 
 Abra pelo atalho na Área de Trabalho ou execute:
 ```bash
-rom --gui
+emucraft --gui       # ou: rom --gui
 ```
 
 #### Recursos da GUI:
+- **Hero Spotlight Banner:** Destaque dinâmico widescreen do último jogo jogado com cover oficial e lançamento imediato.
+- **Filtros Rápidos (Pills):** Cápsulas horizontais de seleção de console (Todos, Switch, PS2, Xbox, Xbox 360, etc.).
 - **Modo Grade (⊞) & Lista (☰):** Alterne visualização entre posters/capas oficiais ou lista detalhada com estatísticas de tempo de jogo.
 - **Roleta Gamer (🎲):** Clique no botão da roleta para sortear um jogo aleatório do seu acervo.
 - **Centro de Download:** Busca online instantânea integrada em múltiplos provedores preservados (Myrient, Internet Archive, Sony CDN, Dlpsgame).
@@ -60,8 +63,8 @@ rom --gui
 ### 2. Interface Interativa de Terminal (TUI)
 
 ```bash
-rom                     # Abre a TUI interativa de busca online
-rom --launch            # Abre a TUI de navegação e lançamento da biblioteca local
+emucraft                 # Abre a TUI interativa de busca online (ou: rom)
+emucraft --launch        # Abre a TUI de navegação e lançamento da biblioteca local
 ```
 
 ---
@@ -109,7 +112,7 @@ rom --refresh
 
 ## 📦 Instalação & Compilação
 
-### Opção A: Instalador Oficial Windows Standalone (`ROM-Launcher-Setup.exe`)
+### Opção A: Instalador Oficial Windows Standalone (`EmuCraft-Setup.exe`)
 Gera o instalador visual completo independente em Python/PyInstaller com assistente de instalação, seleção de pasta, atalhos no Desktop/Menu Iniciar e desinstalador:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-setup-exe.ps1
@@ -122,15 +125,15 @@ powershell -ExecutionPolicy Bypass -File .\build-setup.ps1
 ```
 
 ### Opção C: Compilar Executável Portátil Standalone (.exe)
-Gera `dist\ROM-Launcher.exe` que roda direto em qualquer computador Windows sem instalação e sem precisar de Python:
+Gera `dist\EmuCraft.exe` que roda direto em qualquer computador Windows sem instalação e sem precisar de Python:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
 ```
 
 ### Opção D: Instalação via Python pip (Cross-Platform)
 ```bash
-git clone https://github.com/Henrique1601/rom-launcher.git
-cd rom-launcher
+git clone https://github.com/Henrique1601/emucraft.git
+cd emucraft
 pip install -e .[full]
 ```
 
@@ -151,6 +154,10 @@ python -m unittest discover tests
 - `test_retroachievements.py`: Conexão com API e tratamento de erros de rede.
 - `test_roulette.py`: Algoritmo de sorteio com priorização de títulos não jogados.
 - `test_gamepad.py`: Emulação e estrutura de estados dos botões XInput.
+- `test_savesync.py`: Snapshots automáticos de saves e memory cards de emuladores.
+- `test_patcher.py`: Aplicação de patches de tradução IPS e BPS.
+- `test_bios_checker.py`: Auditoria de regras e presença de firmwares de emuladores.
+- `test_installer_and_gui.py`: Validação de tokens Liquid Glass e geração de atalhos/desinstalador do assistente.
 - `test_utils.py`: Sanitização de nomes de arquivos e fallback para codificação `cp1252` no Windows.
 
 ---
@@ -158,7 +165,7 @@ python -m unittest discover tests
 ## 🏛️ Arquitetura do Repositório
 
 ```
-rom-launcher/
+emucraft/
 ├── .brain/                     # Memória persistente, ADRs e padrões de engenharia
 ├── .github/workflows/          # Automação CI (testes) e Release (build de binários)
 ├── build-exe.ps1               # Compilador Standalone PyInstaller

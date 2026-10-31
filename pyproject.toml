@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rom-cli"
+name = "emucraft"
 version = "1.0.0"
-description = "Next-gen ROM Downloader, Preservation Hub & Desktop GUI Launcher with RetroAchievements, Gamepad Mode & Roulette"
+description = "EmuCraft - Next-gen ROM Downloader, Preservation Hub & Desktop GUI Launcher with RetroAchievements, Gamepad Mode & Roulette"
 readme = "README.md"
 authors = [
     { name = "Henrique Bezerra Dos Santos", email = "henriquebs1601@gmail.com" }
@@ -28,11 +28,12 @@ full = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Henrique1601/rom-launcher"
-Repository = "https://github.com/Henrique1601/rom-launcher"
-Issues = "https://github.com/Henrique1601/rom-launcher/issues"
+Homepage = "https://github.com/Henrique1601/emucraft"
+Repository = "https://github.com/Henrique1601/emucraft"
+Issues = "https://github.com/Henrique1601/emucraft/issues"
 
 [project.scripts]
+emucraft = "rom_cli.main:main"
 rom = "rom_cli.main:main"
 
 [tool.setuptools.packages.find]

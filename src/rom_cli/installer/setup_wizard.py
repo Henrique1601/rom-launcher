@@ -1,6 +1,6 @@
-"""Assistente Oficial de Instalação para Windows (ROM-Launcher-Setup.exe).
+"""Assistente Oficial de Instalação para Windows (EmuCraft-Setup.exe).
 
-Instala o ROM Launcher com assistente visual moderno, cria atalhos na Área de
+Instala o EmuCraft com assistente visual moderno, cria atalhos na Área de
 Trabalho e Menu Iniciar, e registra o desinstalador oficial no Windows.
 """
 
@@ -32,13 +32,13 @@ class SetupWizard(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Instalação do ROM Launcher")
+        self.title("Instalação do EmuCraft")
         self.geometry("640x480")
         self.resizable(False, False)
 
-        # Caminho padrão: %LOCALAPPDATA%\Programs\ROMLauncher
+        # Caminho padrão: %LOCALAPPDATA%\Programs\EmuCraft
         local_app = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
-        self.default_install_dir = str(Path(local_app) / "Programs" / "ROMLauncher")
+        self.default_install_dir = str(Path(local_app) / "Programs" / "EmuCraft")
         self.install_dir_var = ctk.StringVar(value=self.default_install_dir)
 
         # Opções
@@ -57,7 +57,7 @@ class SetupWizard(ctk.CTk):
 
         header_title = ctk.CTkLabel(
             self.header_frame,
-            text="🎮 ROM Launcher  •  Assistente de Instalação",
+            text="🎮 EmuCraft  •  Assistente de Instalação",
             font=ctk.CTkFont(size=17, weight="bold"),
             text_color="#38bdf8"
         )
@@ -114,12 +114,12 @@ class SetupWizard(ctk.CTk):
 
         ctk.CTkLabel(
             self.content_frame,
-            text="Bem-vindo à Instalação do ROM Launcher!",
+            text="Bem-vindo à Instalação do EmuCraft!",
             font=ctk.CTkFont(size=18, weight="bold")
         ).pack(anchor="w", pady=(10, 15))
 
         desc = (
-            "Este assistente irá instalar o ROM Launcher no seu computador.\n\n"
+            "Este assistente irá instalar o EmuCraft no seu computador.\n\n"
             "✨ Recursos Inclusos nesta Instalação:\n"
             "  • Suporte completo a 28+ consoles (PlayStation, Nintendo, Família Xbox, Sega)\n"
             "  • Interface Gamer Glass com posters oficiais (Libretro Box Art)\n"
@@ -188,7 +188,7 @@ class SetupWizard(ctk.CTk):
     def _browse_dir(self):
         chosen = filedialog.askdirectory(initialdir=self.install_dir_var.get())
         if chosen:
-            self.install_dir_var.set(str(Path(chosen) / "ROMLauncher"))
+            self.install_dir_var.set(str(Path(chosen) / "EmuCraft"))
 
     def _show_step_3(self):
         """Passo 3: Instalação em Andamento com Barra de Progresso."""
@@ -200,7 +200,7 @@ class SetupWizard(ctk.CTk):
 
         ctk.CTkLabel(
             self.content_frame,
-            text="Instalando o ROM Launcher...",
+            text="Instalando o EmuCraft...",
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(anchor="w", pady=(20, 15))
 
@@ -234,22 +234,22 @@ class SetupWizard(ctk.CTk):
         # Prioriza payload embutido no próprio instalador (--add-data payload)
         bundled_exe = None
         if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            meipass_payload = Path(sys._MEIPASS) / "payload" / "ROM-Launcher.exe"
+            meipass_payload = Path(sys._MEIPASS) / "payload" / "EmuCraft.exe"
             if meipass_payload.exists():
                 bundled_exe = meipass_payload
 
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
         if not bundled_exe:
-            dist_exe = base_dir / "dist" / "ROM-Launcher.exe"
+            dist_exe = base_dir / "dist" / "EmuCraft.exe"
             if dist_exe.exists():
                 bundled_exe = dist_exe
 
-        installed_exe = dest_dir / "ROM-Launcher.exe"
+        installed_exe = dest_dir / "EmuCraft.exe"
         if bundled_exe and bundled_exe.exists():
             shutil.copy2(bundled_exe, installed_exe)
         else:
             # Cria script de inicialização caso rode direto dos fontes
-            installed_exe = dest_dir / "LaunchROMLauncher.vbs"
+            installed_exe = dest_dir / "LaunchEmuCraft.vbs"
             vbs_code = (
                 f'Set WshShell = CreateObject("WScript.Shell")\n'
                 f'WshShell.CurrentDirectory = "{base_dir}"\n'
@@ -282,23 +282,23 @@ class SetupWizard(ctk.CTk):
 
         vbs_lines = ['Set WshShell = CreateObject("WScript.Shell")']
         if self.create_desktop_shortcut_var.get():
-            desk_lnk = str(target_desktop / "ROM Launcher.lnk").replace('"', '""')
+            desk_lnk = str(target_desktop / "EmuCraft.lnk").replace('"', '""')
             vbs_lines.extend([
                 f'Set dLnk = WshShell.CreateShortcut("{desk_lnk}")',
                 f'dLnk.TargetPath = "{target_file}"',
                 f'dLnk.WorkingDirectory = "{dest_dir}"',
-                'dLnk.Description = "ROM Launcher - Central de Jogos e Emuladores"',
+                'dLnk.Description = "EmuCraft - Central de Jogos e Emuladores"',
                 'dLnk.IconLocation = "%SystemRoot%\\System32\\shell32.dll,24"',
                 'dLnk.Save',
             ])
 
         if self.create_start_menu_var.get():
-            start_lnk = str(start_menu / "ROM Launcher.lnk").replace('"', '""')
+            start_lnk = str(start_menu / "EmuCraft.lnk").replace('"', '""')
             vbs_lines.extend([
                 f'Set sLnk = WshShell.CreateShortcut("{start_lnk}")',
                 f'sLnk.TargetPath = "{target_file}"',
                 f'sLnk.WorkingDirectory = "{dest_dir}"',
-                'sLnk.Description = "ROM Launcher - Central de Jogos e Emuladores"',
+                'sLnk.Description = "EmuCraft - Central de Jogos e Emuladores"',
                 'sLnk.IconLocation = "%SystemRoot%\\System32\\shell32.dll,24"',
                 'sLnk.Save',
             ])
@@ -316,14 +316,14 @@ class SetupWizard(ctk.CTk):
         """Cria o script de desinstalação que remove as pastas e atalhos."""
         uninstall_bat = dest_dir / "Uninstall.bat"
         bat_content = f"""@echo off
-title Desinstalando ROM Launcher...
+title Desinstalando EmuCraft...
 echo Removendo atalhos...
-del "%USERPROFILE%\\Desktop\\ROM Launcher.lnk" >nul 2>&1
-del "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\ROM Launcher.lnk" >nul 2>&1
+del "%USERPROFILE%\\Desktop\\EmuCraft.lnk" >nul 2>&1
+del "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\EmuCraft.lnk" >nul 2>&1
 echo Removendo arquivos...
 cd ..
 rmdir /s /q "{dest_dir}" >nul 2>&1
-echo ROM Launcher foi desinstalado com sucesso.
+echo EmuCraft foi desinstalado com sucesso.
 pause
 """
         uninstall_bat.write_text(bat_content, encoding="ascii")
@@ -341,7 +341,7 @@ pause
         ).pack(anchor="w", pady=(15, 15))
 
         info_text = (
-            f"O ROM Launcher foi instalado com sucesso em:\n{self.install_dir_var.get()}\n\n"
+            f"O EmuCraft foi instalado com sucesso em:\n{self.install_dir_var.get()}\n\n"
             "Atalhos foram criados na sua Área de Trabalho e Menu Iniciar.\n"
             "Você pode iniciar o aplicativo agora para configurar seus jogos e emuladores."
         )
@@ -355,7 +355,7 @@ pause
 
         ctk.CTkCheckBox(
             self.content_frame,
-            text="Iniciar o ROM Launcher agora",
+            text="Iniciar o EmuCraft agora",
             variable=self.launch_after_var
         ).pack(anchor="w", pady=5)
 
@@ -377,8 +377,8 @@ pause
     def _finish_and_exit(self):
         if self.launch_after_var.get():
             dest_dir = Path(self.install_dir_var.get())
-            exe = dest_dir / "ROM-Launcher.exe"
-            vbs = dest_dir / "LaunchROMLauncher.vbs"
+            exe = dest_dir / "EmuCraft.exe"
+            vbs = dest_dir / "LaunchEmuCraft.vbs"
             if exe.exists():
                 os.startfile(str(exe))
             elif vbs.exists():

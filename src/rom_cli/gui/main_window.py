@@ -102,7 +102,7 @@ class RomLauncherApp(ctk.CTk):
         self.scanner = LibraryScanner(self.outdir)
         self.registry = EmulatorRegistry()
 
-        self.title("ROM Launcher - Central de Emulação & Preservação")
+        self.title("EmuCraft - Central de Emulação & Preservação")
         self.geometry("1100x700")
         self.minsize(950, 600)
 
@@ -149,7 +149,7 @@ class RomLauncherApp(ctk.CTk):
 
         self.logo_label = ctk.CTkLabel(
             self.sidebar,
-            text="🎮 ROM LAUNCHER",
+            text="🎮 EMUCRAFT",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#38bdf8"
         )
@@ -451,7 +451,7 @@ class RomLauncherApp(ctk.CTk):
         if not featured_game:
             welcome_lbl = ctk.CTkLabel(
                 self.hero_container,
-                text="✨ Bem-vindo ao ROM Launcher! Nenhum jogo encontrado nesta categoria.\nAcesse a aba 'Baixar Jogos (Loja)' para adicionar títulos com posters e metadados automáticos.",
+                text="✨ Bem-vindo ao EmuCraft! Nenhum jogo encontrado nesta categoria.\nAcesse a aba 'Baixar Jogos (Loja)' para adicionar títulos com posters e metadados automáticos.",
                 font=ctk.CTkFont(size=13),
                 text_color="gray75"
             )

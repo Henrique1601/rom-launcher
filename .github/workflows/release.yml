@@ -34,8 +34,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/ROM-Launcher.exe
-          dist/ROM-Launcher-Setup.exe
+          dist/EmuCraft.exe
+          dist/EmuCraft-Setup.exe
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

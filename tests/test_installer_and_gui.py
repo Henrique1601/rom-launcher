@@ -39,7 +39,7 @@ class TestInstallerAndGUI(unittest.TestCase):
             uninstall_bat = tmp_path / "Uninstall.bat"
             self.assertTrue(uninstall_bat.exists())
             content = uninstall_bat.read_text(encoding="ascii")
-            self.assertIn("ROM Launcher", content)
+            self.assertIn("EmuCraft", content)
             self.assertIn("rmdir /s /q", content)
 
     def test_shortcuts_vbs_generation(self):
@@ -48,7 +48,7 @@ class TestInstallerAndGUI(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
-            dummy_exe = tmp_path / "ROM-Launcher.exe"
+            dummy_exe = tmp_path / "EmuCraft.exe"
             dummy_exe.write_bytes(b"MZ_DUMMY_EXE")
 
             wizard = SetupWizard.__new__(SetupWizard)

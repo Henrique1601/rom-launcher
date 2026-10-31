@@ -1,8 +1,8 @@
-# Compilador de Executavel Standalone (.exe) para o ROM Launcher Desktop
+# Compilador de Executavel Standalone (.exe) para o EmuCraft Desktop
 $ErrorActionPreference = "Stop"
 
 Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host "  Compilando ROM-Launcher.exe com PyInstaller" -ForegroundColor Cyan
+Write-Host "    Compilando EmuCraft.exe com PyInstaller  " -ForegroundColor Cyan
 Write-Host "=============================================" -ForegroundColor Cyan
 
 $ProjectDir = $PSScriptRoot
@@ -17,7 +17,7 @@ $DistDir = Join-Path $ProjectDir "dist"
 $BuildDir = Join-Path $ProjectDir "build"
 
 & $PythonExe -m PyInstaller `
-    --name "ROM-Launcher" `
+    --name "EmuCraft" `
     --noconsole `
     --onefile `
     --paths "src" `
@@ -32,5 +32,5 @@ $BuildDir = Join-Path $ProjectDir "build"
 
 Write-Host ""
 Write-Host "[3/3] Compilacao concluida!" -ForegroundColor Green
-Write-Host "Executavel gerado em: $DistDir\ROM-Launcher.exe" -ForegroundColor White
+Write-Host "Executavel gerado em: $DistDir\EmuCraft.exe" -ForegroundColor White
 Write-Host "Voce pode executar esse arquivo diretamente ou move-lo para qualquer pasta/PC sem precisar do Python!" -ForegroundColor Cyan

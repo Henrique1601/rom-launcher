@@ -1,4 +1,4 @@
-"""rom_cli - CLI, TUI e GUI Desktop para busca, download e gerenciamento de ROMs."""
+"""EmuCraft - Central e Launcher de Emulação, Preservação e Download de ROMs."""
 
 import io
 import sys
