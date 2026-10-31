@@ -5,7 +5,13 @@ import re
 import urllib.parse
 from pathlib import Path
 from typing import Optional
-from PIL import Image
+
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    Image = None
+    HAS_PIL = False
 
 from rom_cli.config import CACHE_DIR
 from rom_cli.core.utils import request_http, norm
@@ -87,14 +93,22 @@ def fetch_boxart(title: str, platform_key: str, force: bool = False) -> Optional
                 with open(temp_path, "wb") as f:
                     f.write(body)
 
-                # Valida se é imagem PNG/JPEG válida com Pillow e redimensiona para tamanho padrão
-                try:
-                    with Image.open(temp_path) as img:
-                        img.verify()
-                    temp_path.replace(local_path)
-                    return local_path
-                except Exception:
-                    if temp_path.exists():
+                # Valida se é imagem PNG/JPEG válida (com Pillow se disponível, ou por magic bytes)
+                if HAS_PIL and Image:
+                    try:
+                        with Image.open(temp_path) as img:
+                            img.verify()
+                        temp_path.replace(local_path)
+                        return local_path
+                    except Exception:
+                        if temp_path.exists():
+                            temp_path.unlink()
+                else:
+                    # Fallback sem Pillow: valida magic bytes de PNG ou JPEG
+                    if body.startswith(b"\x89PNG\r\n\x1a\n") or body.startswith(b"\xff\xd8\xff"):
+                        temp_path.replace(local_path)
+                        return local_path
+                    elif temp_path.exists():
                         temp_path.unlink()
         except Exception:
             continue
