@@ -109,20 +109,20 @@ rom --refresh
 
 ## 📦 Instalação & Compilação
 
-### Opção A: Instalador Windows Setup (Inno Setup)
-Gera o instalador padrão do Windows (`ROM-Launcher-Setup.exe`):
+### Opção A: Instalador Oficial Windows Standalone (`ROM-Launcher-Setup.exe`)
+Gera o instalador visual completo independente em Python/PyInstaller com assistente de instalação, seleção de pasta, atalhos no Desktop/Menu Iniciar e desinstalador:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-setup-exe.ps1
+```
+
+### Opção B: Instalador Inno Setup
+Gera o instalador tradicional via compilador Inno Setup:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-setup.ps1
 ```
 
-### Opção B: Atalhos Desktop Silenciosos (Sem janela preta de console)
-Cria atalhos na Área de Trabalho e Menu Iniciar apontando para inicializador VBS silencioso:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install-desktop.ps1
-```
-
 ### Opção C: Compilar Executável Portátil Standalone (.exe)
-Gera `dist\ROM-Launcher.exe` que roda em qualquer computador sem precisar de Python instalado:
+Gera `dist\ROM-Launcher.exe` que roda direto em qualquer computador Windows sem instalação e sem precisar de Python:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
 ```

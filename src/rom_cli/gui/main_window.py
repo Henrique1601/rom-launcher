@@ -37,6 +37,59 @@ from rom_cli.launcher.scanner import InstalledGame, LibraryScanner
 from rom_cli.models import RomItem
 from rom_cli.providers import DLP, SOURCES
 
+try:
+    import winsound
+
+    def play_click():
+        try:
+            winsound.MessageBeep(winsound.MB_OK)
+        except Exception:
+            pass
+except Exception:
+    def play_click():
+        pass
+
+
+PLATFORM_COLORS: Dict[str, str] = {
+    "switch": "#e60012",
+    "switchports": "#e60012",
+    "ps1": "#003791",
+    "ps2": "#003791",
+    "ps3": "#003791",
+    "ps4": "#003791",
+    "ps5": "#003791",
+    "psp": "#003791",
+    "psv": "#003791",
+    "xbox": "#107c10",
+    "xbox360": "#107c10",
+    "snes": "#7c3aed",
+    "nes": "#dc2626",
+    "gba": "#4f46e5",
+    "gbc": "#7c3aed",
+    "gb": "#64748b",
+    "nds": "#0284c7",
+    "n64": "#ea580c",
+    "gc": "#4338ca",
+    "wii": "#06b6d4",
+    "genesis": "#1e40af",
+    "dreamcast": "#f97316",
+    "saturn": "#64748b",
+    "arcade": "#b45309",
+}
+
+QUICK_PLATFORMS = [
+    ("all", "Todos"),
+    ("switch", "Switch"),
+    ("ps2", "PS2"),
+    ("xbox", "Xbox"),
+    ("xbox360", "Xbox 360"),
+    ("ps1", "PS1"),
+    ("snes", "SNES"),
+    ("gba", "GBA"),
+    ("psp", "PSP"),
+    ("nds", "NDS"),
+]
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -82,53 +135,65 @@ class RomLauncherApp(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        # 1. Barra Lateral (Sidebar)
-        self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0)
+        # 1. Barra Lateral (Sidebar Liquid Glass)
+        self.sidebar = ctk.CTkFrame(
+            self,
+            width=230,
+            corner_radius=0,
+            fg_color=("#0f172a", "#0a0f1d"),
+            border_width=1,
+            border_color="#1e293b"
+        )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_rowconfigure(5, weight=1)
 
         self.logo_label = ctk.CTkLabel(
             self.sidebar,
             text="🎮 ROM LAUNCHER",
-            font=ctk.CTkFont(size=18, weight="bold")
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#38bdf8"
         )
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 25))
 
         self.btn_nav_library = ctk.CTkButton(
             self.sidebar,
             text="📚 Minha Biblioteca",
-            height=36,
+            height=38,
+            corner_radius=8,
             anchor="w",
             command=lambda: self._select_tab("library")
         )
-        self.btn_nav_library.grid(row=1, column=0, padx=15, pady=6, sticky="ew")
+        self.btn_nav_library.grid(row=1, column=0, padx=15, pady=5, sticky="ew")
 
         self.btn_nav_store = ctk.CTkButton(
             self.sidebar,
             text="🔍 Baixar Jogos (Loja)",
-            height=36,
+            height=38,
+            corner_radius=8,
             anchor="w",
             command=lambda: self._select_tab("store")
         )
-        self.btn_nav_store.grid(row=2, column=0, padx=15, pady=6, sticky="ew")
+        self.btn_nav_store.grid(row=2, column=0, padx=15, pady=5, sticky="ew")
 
         self.btn_nav_emulators = ctk.CTkButton(
             self.sidebar,
-            text="⚙️ Emuladores",
-            height=36,
+            text="⚙️ Emuladores & BIOS",
+            height=38,
+            corner_radius=8,
             anchor="w",
             command=lambda: self._select_tab("emulators")
         )
-        self.btn_nav_emulators.grid(row=3, column=0, padx=15, pady=6, sticky="ew")
+        self.btn_nav_emulators.grid(row=3, column=0, padx=15, pady=5, sticky="ew")
 
         self.btn_nav_saves = ctk.CTkButton(
             self.sidebar,
             text="💾 Saves & Backups",
-            height=36,
+            height=38,
+            corner_radius=8,
             anchor="w",
             command=lambda: self._select_tab("saves")
         )
-        self.btn_nav_saves.grid(row=4, column=0, padx=15, pady=6, sticky="ew")
+        self.btn_nav_saves.grid(row=4, column=0, padx=15, pady=5, sticky="ew")
 
         self.btn_open_folder = ctk.CTkButton(
             self.sidebar,
@@ -136,10 +201,25 @@ class RomLauncherApp(ctk.CTk):
             height=32,
             fg_color="transparent",
             border_width=1,
+            border_color="#334155",
+            corner_radius=8,
             text_color=("gray10", "#DCE4EE"),
             command=self._open_roms_folder
         )
-        self.btn_open_folder.grid(row=6, column=0, padx=15, pady=(10, 20), sticky="ew")
+        self.btn_open_folder.grid(row=6, column=0, padx=15, pady=(10, 8), sticky="ew")
+
+        try:
+            from rom_cli.core.discord_rpc import DISCORD_RPC
+            discord_status = "🟢 Discord RPC Ativo" if DISCORD_RPC.connected else "⚪ Discord RPC Pronto"
+        except Exception:
+            discord_status = "⚪ Discord RPC Inativo"
+        self.lbl_discord = ctk.CTkLabel(
+            self.sidebar,
+            text=discord_status,
+            font=ctk.CTkFont(size=10),
+            text_color="gray60"
+        )
+        self.lbl_discord.grid(row=7, column=0, padx=15, pady=(0, 15), sticky="w")
 
         # 2. Painel Central (Main Views)
         self.main_container = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -153,6 +233,7 @@ class RomLauncherApp(ctk.CTk):
         self._build_saves_view()
 
     def _select_tab(self, tab_name: str):
+        play_click()
         self.view_library.grid_forget()
         self.view_store.grid_forget()
         self.view_emulators.grid_forget()
@@ -166,9 +247,19 @@ class RomLauncherApp(ctk.CTk):
             (self.btn_nav_saves, "saves"),
         ]:
             if name == tab_name:
-                btn.configure(fg_color=["#3a7ebf", "#1f538d"], text_color="#ffffff")
+                btn.configure(
+                    fg_color="#0284c7",
+                    hover_color="#0369a1",
+                    text_color="#ffffff",
+                    border_width=1,
+                    border_color="#38bdf8"
+                )
             else:
-                btn.configure(fg_color="transparent", text_color=("gray10", "#DCE4EE"))
+                btn.configure(
+                    fg_color="transparent",
+                    text_color=("gray10", "#DCE4EE"),
+                    border_width=0
+                )
 
         if tab_name == "library":
             self.view_library.grid(row=0, column=0, sticky="nsew")
@@ -183,22 +274,24 @@ class RomLauncherApp(ctk.CTk):
             self._refresh_saves_list()
 
     # ==========================================
-    # VIEW 1: BIBLIOTECA (INSTALLED GAMES)
+    # VIEW 1: BIBLIOTECA (INSTALLED GAMES) - LIQUID GLASS
     # ==========================================
     def _build_library_view(self):
         self.view_library = ctk.CTkFrame(self.main_container, fg_color="transparent")
-        self.view_library.grid_rowconfigure(1, weight=1)
+        self.view_library.grid_rowconfigure(3, weight=1)
         self.view_library.grid_columnconfigure(0, weight=1)
 
-        # Barra de ferramentas superior
+        # 1. Barra de ferramentas superior
         top_bar = ctk.CTkFrame(self.view_library, fg_color="transparent")
-        top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
         top_bar.grid_columnconfigure(0, weight=1)
 
         self.library_search_entry = ctk.CTkEntry(
             top_bar,
             placeholder_text="🔍 Filtrar jogos da biblioteca...",
-            height=35
+            height=36,
+            corner_radius=8,
+            border_color="#1e293b"
         )
         self.library_search_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
         self.library_search_entry.bind("<KeyRelease>", lambda e: self._render_library_cards())
@@ -207,8 +300,9 @@ class RomLauncherApp(ctk.CTk):
             top_bar,
             values=["Todas as Plataformas"],
             command=self._on_library_platform_changed,
-            height=35,
-            width=160
+            height=36,
+            width=160,
+            corner_radius=8
         )
         self.platform_filter_menu.grid(row=0, column=1, padx=(0, 8))
 
@@ -216,8 +310,9 @@ class RomLauncherApp(ctk.CTk):
             top_bar,
             values=["Nome (A-Z)", "Mais Jogados", "Jogados Recentemente", "Maior Tamanho"],
             command=lambda c: self._render_library_cards(),
-            height=35,
-            width=150
+            height=36,
+            width=150,
+            corner_radius=8
         )
         self.sort_menu.grid(row=0, column=2, padx=(0, 8))
 
@@ -225,7 +320,8 @@ class RomLauncherApp(ctk.CTk):
             top_bar,
             values=["⊞ Grade", "☰ Lista"],
             command=self._on_view_mode_changed,
-            height=35
+            height=36,
+            corner_radius=8
         )
         self.view_mode_segmented.set("⊞ Grade")
         self.view_mode_segmented.grid(row=0, column=3)
@@ -234,26 +330,89 @@ class RomLauncherApp(ctk.CTk):
             top_bar,
             text="🎲 Roleta",
             width=90,
-            height=35,
-            fg_color="#6f42c1",
-            hover_color="#59359a",
+            height=36,
+            fg_color="#6366f1",
+            hover_color="#4f46e5",
+            corner_radius=8,
             command=self._spin_roulette
         )
         self.btn_roulette.grid(row=0, column=4, padx=(8, 0))
 
-        # Container rolável para os cards de jogos
+        # 2. Barra horizontal de filtros rápidos em cápsulas (Pills)
+        self.pills_frame = ctk.CTkFrame(self.view_library, fg_color="transparent")
+        self.pills_frame.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+
+        self.pill_buttons: Dict[str, ctk.CTkButton] = {}
+        for pk, plabel in QUICK_PLATFORMS:
+            btn = ctk.CTkButton(
+                self.pills_frame,
+                text=plabel,
+                width=60 if pk == "all" else 72,
+                height=26,
+                corner_radius=13,
+                font=ctk.CTkFont(size=11, weight="bold"),
+                fg_color="#0284c7" if pk == "all" else ("#1e293b", "#0f172a"),
+                text_color="#ffffff" if pk == "all" else "gray80",
+                border_width=1,
+                border_color="#38bdf8" if pk == "all" else "#334155",
+                hover_color="#0369a1",
+                command=lambda p=pk: self._on_quick_pill_clicked(p)
+            )
+            btn.pack(side="left", padx=(0, 6))
+            self.pill_buttons[pk] = btn
+
+        # 3. Hero Spotlight Banner Container (Liquid Glass)
+        self.hero_container = ctk.CTkFrame(
+            self.view_library,
+            corner_radius=12,
+            fg_color=("#162032", "#0f1624"),
+            border_width=1,
+            border_color="#1f2e44"
+        )
+        self.hero_container.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+
+        # 4. Container rolável para os cards de jogos
         self.library_scroll = ctk.CTkScrollableFrame(self.view_library, fg_color="transparent")
-        self.library_scroll.grid(row=1, column=0, sticky="nsew")
+        self.library_scroll.grid(row=3, column=0, sticky="nsew")
         self.library_scroll.grid_columnconfigure(0, weight=1)
 
-        # Barra de status da biblioteca
+        # 5. Barra de status da biblioteca
         self.library_status = ctk.CTkLabel(
             self.view_library,
             text="Carregando biblioteca...",
             anchor="w",
             text_color="gray70"
         )
-        self.library_status.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        self.library_status.grid(row=4, column=0, sticky="ew", pady=(6, 0))
+
+    def _on_quick_pill_clicked(self, platform_key: str):
+        play_click()
+        self.current_library_platform = platform_key
+        if platform_key == "all":
+            self.platform_filter_menu.set("Todas as Plataformas")
+        else:
+            label = PLATFORM_LABELS.get(platform_key, platform_key)
+            for v in self.platform_filter_menu.cget("values"):
+                if v.startswith(label):
+                    self.platform_filter_menu.set(v)
+                    break
+        self._update_pill_styles()
+        self._render_library_cards()
+
+    def _update_pill_styles(self):
+        for pk, btn in self.pill_buttons.items():
+            if pk == self.current_library_platform:
+                btn.configure(
+                    fg_color="#0284c7",
+                    border_color="#38bdf8",
+                    text_color="#ffffff"
+                )
+            else:
+                btn.configure(
+                    fg_color=("#1e293b", "#0f172a"),
+                    border_color="#334155",
+                    text_color="gray80"
+                )
 
     def _on_view_mode_changed(self, mode: str):
         self.library_view_mode = "grid" if "Grade" in mode else "list"
@@ -282,7 +441,168 @@ class RomLauncherApp(ctk.CTk):
                 if v == label:
                     self.current_library_platform = k
                     break
+        self._update_pill_styles()
         self._render_library_cards()
+
+    def _render_hero_banner(self, featured_game: Optional[InstalledGame]):
+        for w in self.hero_container.winfo_children():
+            w.destroy()
+
+        if not featured_game:
+            welcome_lbl = ctk.CTkLabel(
+                self.hero_container,
+                text="✨ Bem-vindo ao ROM Launcher! Nenhum jogo encontrado nesta categoria.\nAcesse a aba 'Baixar Jogos (Loja)' para adicionar títulos com posters e metadados automáticos.",
+                font=ctk.CTkFont(size=13),
+                text_color="gray75"
+            )
+            welcome_lbl.pack(pady=18, padx=20)
+            return
+
+        self.hero_container.grid_columnconfigure(1, weight=1)
+
+        # Poster da esquerda
+        poster_box = ctk.CTkFrame(
+            self.hero_container,
+            width=96,
+            height=130,
+            corner_radius=8,
+            fg_color=("#0f172a", "#090d16"),
+            border_width=1,
+            border_color="#24344d"
+        )
+        poster_box.grid(row=0, column=0, rowspan=3, padx=14, pady=12, sticky="nw")
+        poster_box.pack_propagate(False)
+
+        hero_img = ctk.CTkLabel(poster_box, text="🎮", font=ctk.CTkFont(size=36))
+        hero_img.pack(expand=True, fill="both")
+        self._load_hero_cover(featured_game, hero_img)
+
+        # Informações centrais
+        info_frame = ctk.CTkFrame(self.hero_container, fg_color="transparent")
+        info_frame.grid(row=0, column=1, padx=(4, 14), pady=(12, 6), sticky="nsew")
+
+        # Linha de badges (Tag "EM DESTAQUE" + Plataforma)
+        badges_row = ctk.CTkFrame(info_frame, fg_color="transparent")
+        badges_row.pack(anchor="w", pady=(0, 4))
+
+        stats = TRACKER.get_stats(featured_game.path.stem)
+        tag_text = "🔥 ÚLTIMO JOGO INICIADO" if stats.get("last_played", 0) > 0 else "⭐ DESTAQUE DA BIBLIOTECA"
+        tag_badge = ctk.CTkLabel(
+            badges_row,
+            text=f"  {tag_text}  ",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            fg_color="#0284c7",
+            text_color="#ffffff",
+            corner_radius=6
+        )
+        tag_badge.pack(side="left", padx=(0, 8))
+
+        plat_color = PLATFORM_COLORS.get(featured_game.platform_key, "#334155")
+        plat_badge = ctk.CTkLabel(
+            badges_row,
+            text=f"  {featured_game.platform_label}  ",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            fg_color=plat_color,
+            text_color="#ffffff",
+            corner_radius=6
+        )
+        plat_badge.pack(side="left")
+
+        # Título Grande do Jogo
+        hero_title = ctk.CTkLabel(
+            info_frame,
+            text=featured_game.title,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            anchor="w"
+        )
+        hero_title.pack(anchor="w", pady=(2, 4))
+
+        # Metadados
+        playtime = TRACKER.format_playtime(featured_game.path.stem)
+        last_played = TRACKER.format_last_played(featured_game.path.stem)
+        meta_str = f"⏱️ Tempo Jogado: {playtime}   •   📅 Última vez: {last_played}   •   💾 Formato: .{featured_game.extension} ({human_size(featured_game.size)})"
+        hero_meta = ctk.CTkLabel(
+            info_frame,
+            text=meta_str,
+            font=ctk.CTkFont(size=11),
+            text_color="gray75",
+            anchor="w"
+        )
+        hero_meta.pack(anchor="w", pady=(0, 4))
+
+        # Linha de Ações (Botões)
+        actions_row = ctk.CTkFrame(info_frame, fg_color="transparent")
+        actions_row.pack(anchor="w", pady=(6, 2))
+
+        btn_hero_play = ctk.CTkButton(
+            actions_row,
+            text="▶  JOGAR AGORA",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            height=34,
+            width=140,
+            fg_color="#10b981",
+            hover_color="#059669",
+            corner_radius=8,
+            command=lambda g=featured_game: (play_click(), self._launch_game_action(g))
+        )
+        btn_hero_play.pack(side="left", padx=(0, 10))
+
+        btn_hero_patch = ctk.CTkButton(
+            actions_row,
+            text="🔧 Traduzir (Patch)",
+            font=ctk.CTkFont(size=12),
+            height=34,
+            width=130,
+            fg_color=("#334155", "#1e293b"),
+            hover_color="#475569",
+            corner_radius=8,
+            command=lambda g=featured_game: self._apply_patch_action(g)
+        )
+        btn_hero_patch.pack(side="left", padx=(0, 10))
+
+        btn_hero_spin = ctk.CTkButton(
+            actions_row,
+            text="🎲 Outro Aleatório",
+            font=ctk.CTkFont(size=12),
+            height=34,
+            width=130,
+            fg_color="#6366f1",
+            hover_color="#4f46e5",
+            corner_radius=8,
+            command=self._spin_roulette
+        )
+        btn_hero_spin.pack(side="left")
+
+    def _load_hero_cover(self, game: InstalledGame, label: ctk.CTkLabel):
+        cache_key = f"hero_{game.platform_key}_{game.path.stem}"
+        if cache_key in self.cover_cache:
+            label.configure(image=self.cover_cache[cache_key], text="")
+            return
+
+        disk_path = get_cover_path(game.title, game.platform_key)
+        if disk_path.exists():
+            try:
+                with Image.open(disk_path) as img:
+                    img_res = img.resize((96, 130), Image.Resampling.LANCZOS)
+                    ctk_img = ctk.CTkImage(light_image=img_res, dark_image=img_res, size=(96, 130))
+                    self.cover_cache[cache_key] = ctk_img
+                    label.configure(image=ctk_img, text="")
+                    return
+            except Exception:
+                pass
+
+        def worker():
+            path = fetch_boxart(game.title, game.platform_key)
+            if path and path.exists():
+                try:
+                    with Image.open(path) as img:
+                        img_res = img.resize((96, 130), Image.Resampling.LANCZOS)
+                        ctk_img = ctk.CTkImage(light_image=img_res, dark_image=img_res, size=(96, 130))
+                        self.cover_cache[cache_key] = ctk_img
+                        self.after(0, lambda: label.configure(image=ctk_img, text=""))
+                except Exception:
+                    pass
+        threading.Thread(target=worker, daemon=True).start()
 
     def _render_library_cards(self):
         for widget in self.library_scroll.winfo_children():
@@ -299,6 +619,21 @@ class RomLauncherApp(ctk.CTk):
 
         if filter_q:
             games = [g for g in games if filter_q in g.title.lower()]
+
+        # Seleciona o jogo em destaque para o Hero Banner
+        featured_game = None
+        if games:
+            recent_games = sorted(
+                games,
+                key=lambda g: TRACKER.get_stats(g.path.stem).get("last_played", 0),
+                reverse=True
+            )
+            if TRACKER.get_stats(recent_games[0].path.stem).get("last_played", 0) > 0:
+                featured_game = recent_games[0]
+            else:
+                featured_game = games[0]
+
+        self._render_hero_banner(featured_game)
 
         if not games:
             empty_lbl = ctk.CTkLabel(
@@ -328,9 +663,23 @@ class RomLauncherApp(ctk.CTk):
 
     def _render_list_view(self, games: List[InstalledGame]):
         for game in games:
-            card = ctk.CTkFrame(self.library_scroll, corner_radius=8, fg_color=("gray85", "gray20"))
+            card = ctk.CTkFrame(
+                self.library_scroll,
+                corner_radius=10,
+                fg_color=("#1a2333", "#111827"),
+                border_width=1,
+                border_color="#1e293b"
+            )
             card.pack(fill="x", pady=5, padx=2)
             card.grid_columnconfigure(0, weight=1)
+
+            # Efeito Motion Hover
+            def on_enter(e, f=card):
+                f.configure(border_color="#38bdf8", fg_color=("#222f44", "#162032"))
+            def on_leave(e, f=card):
+                f.configure(border_color="#1e293b", fg_color=("#1a2333", "#111827"))
+            card.bind("<Enter>", on_enter)
+            card.bind("<Leave>", on_leave)
 
             playtime = TRACKER.format_playtime(game.path.stem)
             last_played = TRACKER.format_last_played(game.path.stem)
@@ -338,22 +687,35 @@ class RomLauncherApp(ctk.CTk):
             info_frame = ctk.CTkFrame(card, fg_color="transparent")
             info_frame.grid(row=0, column=0, sticky="w", padx=15, pady=10)
 
+            title_row = ctk.CTkFrame(info_frame, fg_color="transparent")
+            title_row.pack(anchor="w")
+
+            plat_color = PLATFORM_COLORS.get(game.platform_key, "#0284c7")
+            ctk.CTkLabel(
+                title_row,
+                text=f"  {game.platform_label}  ",
+                font=ctk.CTkFont(size=10, weight="bold"),
+                fg_color=plat_color,
+                text_color="#ffffff",
+                corner_radius=6
+            ).pack(side="left", padx=(0, 8))
+
             title_lbl = ctk.CTkLabel(
-                info_frame,
+                title_row,
                 text=game.title,
                 font=ctk.CTkFont(size=15, weight="bold"),
                 anchor="w"
             )
-            title_lbl.pack(anchor="w")
+            title_lbl.pack(side="left")
 
             sub_lbl = ctk.CTkLabel(
                 info_frame,
-                text=f"{game.platform_label}  •  Formato: .{game.extension}  •  Tam: {human_size(game.size)}  •  ⏱️ {playtime}  •  Última vez: {last_played}",
+                text=f"Formato: .{game.extension}  •  Tam: {human_size(game.size)}  •  ⏱️ {playtime}  •  Última vez: {last_played}",
                 font=ctk.CTkFont(size=12),
                 text_color="gray70",
                 anchor="w"
             )
-            sub_lbl.pack(anchor="w")
+            sub_lbl.pack(anchor="w", pady=(3, 0))
             self._load_card_achievements(game, sub_lbl)
 
             actions_frame = ctk.CTkFrame(card, fg_color="transparent")
@@ -365,8 +727,9 @@ class RomLauncherApp(ctk.CTk):
                 width=85,
                 height=34,
                 font=ctk.CTkFont(size=12),
-                fg_color=("gray75", "gray35"),
-                hover_color=("gray65", "gray45"),
+                fg_color=("#334155", "#1e293b"),
+                hover_color="#475569",
+                corner_radius=8,
                 command=lambda g=game: self._apply_patch_action(g)
             )
             btn_patch.pack(side="left", padx=(0, 8))
@@ -377,9 +740,10 @@ class RomLauncherApp(ctk.CTk):
                 width=100,
                 height=34,
                 font=ctk.CTkFont(size=13, weight="bold"),
-                fg_color="#28a745",
-                hover_color="#218838",
-                command=lambda g=game: self._launch_game_action(g)
+                fg_color="#10b981",
+                hover_color="#059669",
+                corner_radius=8,
+                command=lambda g=game: (play_click(), self._launch_game_action(g))
             )
             btn_play.pack(side="left")
 
@@ -392,30 +756,63 @@ class RomLauncherApp(ctk.CTk):
             r = i // cols
             c = i % cols
 
-            card = ctk.CTkFrame(self.library_scroll, corner_radius=10, fg_color=("gray85", "gray20"))
+            card = ctk.CTkFrame(
+                self.library_scroll,
+                corner_radius=12,
+                fg_color=("#1a2333", "#111827"),
+                border_width=1,
+                border_color="#1e293b"
+            )
             card.grid(row=r, column=c, padx=8, pady=8, sticky="nsew")
 
+            # Efeito Motion Hover
+            def on_enter(e, f=card):
+                f.configure(border_color="#38bdf8", fg_color=("#222f44", "#162032"))
+            def on_leave(e, f=card):
+                f.configure(border_color="#1e293b", fg_color=("#1a2333", "#111827"))
+            card.bind("<Enter>", on_enter)
+            card.bind("<Leave>", on_leave)
+
             # Box Art (Poster)
-            cover_frame = ctk.CTkFrame(card, width=130, height=180, corner_radius=6, fg_color=("gray75", "gray25"))
+            cover_frame = ctk.CTkFrame(
+                card,
+                width=130,
+                height=180,
+                corner_radius=8,
+                fg_color=("#0f172a", "#090d16"),
+                border_width=1,
+                border_color="#1e293b"
+            )
             cover_frame.pack(padx=10, pady=(10, 6))
             cover_frame.pack_propagate(False)
 
             img_label = ctk.CTkLabel(cover_frame, text="🎮", font=ctk.CTkFont(size=32))
             img_label.pack(expand=True, fill="both")
-
-            # Tenta carregar imagem da capa (cache ou local)
             self._load_card_cover(game, img_label)
+
+            # Platform capsule badge
+            plat_color = PLATFORM_COLORS.get(game.platform_key, "#0284c7")
+            badge = ctk.CTkLabel(
+                card,
+                text=f" {game.platform_label} ",
+                font=ctk.CTkFont(size=10, weight="bold"),
+                fg_color=plat_color,
+                text_color="#ffffff",
+                corner_radius=6,
+                height=18
+            )
+            badge.pack(padx=8, pady=(0, 4))
 
             # Título resumido
             display_title = game.title if len(game.title) <= 24 else game.title[:22] + "…"
             title_lbl = ctk.CTkLabel(card, text=display_title, font=ctk.CTkFont(size=13, weight="bold"))
             title_lbl.pack(padx=8, pady=(0, 2))
 
-            # Detalhes (Plataforma + Tempo jogado)
+            # Detalhes (Tempo jogado)
             playtime = TRACKER.format_playtime(game.path.stem)
             meta_lbl = ctk.CTkLabel(
                 card,
-                text=f"{game.platform_label}\n⏱️ {playtime}",
+                text=f"⏱️ {playtime}",
                 font=ctk.CTkFont(size=11),
                 text_color="gray70"
             )
@@ -425,11 +822,12 @@ class RomLauncherApp(ctk.CTk):
             btn_play = ctk.CTkButton(
                 card,
                 text="▶ JOGAR",
-                height=30,
+                height=32,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                fg_color="#28a745",
-                hover_color="#218838",
-                command=lambda g=game: self._launch_game_action(g)
+                fg_color="#10b981",
+                hover_color="#059669",
+                corner_radius=8,
+                command=lambda g=game: (play_click(), self._launch_game_action(g))
             )
             btn_play.pack(fill="x", padx=12, pady=(0, 10))
 
@@ -476,7 +874,6 @@ class RomLauncherApp(ctk.CTk):
             idx = (platforms.index(cur) + 1) % len(platforms)
             self.platform_filter_menu.set(platforms[idx])
             self._on_library_platform_changed(platforms[idx])
-            btn_play.pack(fill="x", padx=12, pady=(0, 10))
 
     def _load_card_cover(self, game: InstalledGame, label: ctk.CTkLabel):
         cache_key = f"{game.platform_key}_{game.path.stem}"

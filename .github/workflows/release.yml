@@ -25,15 +25,17 @@ jobs:
         pip install pyinstaller customtkinter pillow textual requests
         pip install -e .
 
-    - name: Build Standalone Executable
+    - name: Build Standalone Executable and Installer
       run: |
         powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
+        powershell -ExecutionPolicy Bypass -File .\build-setup-exe.ps1
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
         files: |
           dist/ROM-Launcher.exe
+          dist/ROM-Launcher-Setup.exe
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

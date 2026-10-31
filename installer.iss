@@ -2,7 +2,7 @@
 ; Baixe o Inno Setup gratuitamente em: https://jrsoftware.org/isdl.php
 
 #define MyAppName "ROM Launcher"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "ROM Community"
 #define MyAppURL "https://github.com"
 #define MyAppExeName "ROM-Launcher.exe"
