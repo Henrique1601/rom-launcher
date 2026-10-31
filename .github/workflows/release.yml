@@ -24,18 +24,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller customtkinter pillow textual requests
         pip install -e .
+        choco install innosetup --no-progress
 
-    - name: Build Standalone Executable and Installer
+    - name: Build Standalone Executable, Installer and Portable Package
       run: |
+        # 1. Compila o executável principal com metadados PE e sem UPX
         powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
-        powershell -ExecutionPolicy Bypass -File .\build-setup-exe.ps1
+
+        # 2. Compila o instalador oficial usando o Inno Setup
+        $inno = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        if (-not (Test-Path $inno)) {
+            $inno = (Get-Command iscc.exe).Source
+        }
+        & $inno installer.iss
+
+        # 3. Gera o arquivo portátil oficial .ZIP
+        Compress-Archive -Path dist\EmuCraft.exe -DestinationPath dist\EmuCraft-Portable.zip -Force
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/EmuCraft.exe
           dist/EmuCraft-Setup.exe
+          dist/EmuCraft-Portable.zip
+          dist/EmuCraft.exe
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

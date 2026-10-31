@@ -11,4 +11,4 @@ if sys.stderr is None:
 if sys.stdin is None:
     sys.stdin = io.StringIO()
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"

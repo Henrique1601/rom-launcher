@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emucraft"
-version = "1.0.0"
+version = "1.0.1"
 description = "EmuCraft - Next-gen ROM Downloader, Preservation Hub & Desktop GUI Launcher with RetroAchievements, Gamepad Mode & Roulette"
 readme = "README.md"
 authors = [

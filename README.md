@@ -112,28 +112,29 @@ rom --refresh
 
 ## 📦 Instalação & Compilação
 
-### Opção A: Instalador Oficial Windows Standalone (`EmuCraft-Setup.exe`)
-Gera o instalador visual completo independente em Python/PyInstaller com assistente de instalação, seleção de pasta, atalhos no Desktop/Menu Iniciar e desinstalador:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\build-setup-exe.ps1
-```
+> [!NOTE]
+> **Aviso sobre o Google Chrome e Windows SmartScreen:**  
+> Por ser um projeto de código aberto recém-lançado no GitHub e sem certificado comercial pago (EV Authenticode de \$400/ano), o Google Safe Browsing e o Windows SmartScreen podem emitir um alerta preventivo de "Download não verificado / Arquivo suspeito":
+> - **No Chrome:** Abra o histórico de downloads (`Ctrl + J`) e selecione **"Manter arquivo suspeito"** / **"Manter mesmo assim"**.
+> - **No Windows:** Na janela azul *"O Windows protegeu o seu computador"*, clique em **"Mais informações"** e depois em **"Executar assim mesmo"**.
+> - **Formato Portátil Recomendado:** Se preferir, baixe o pacote **`EmuCraft-Portable.zip`** na aba de Releases, descompacte em qualquer pasta e execute sem nenhum bloqueio.
 
-### Opção B: Instalador Inno Setup
-Gera o instalador tradicional via compilador Inno Setup:
+### Opção A: Instalador Oficial Windows (`EmuCraft-Setup.exe`)
+Gera o instalador padrão do Windows via Inno Setup com desinstalador registrado no Painel de Controle:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-setup.ps1
 ```
 
-### Opção C: Compilar Executável Portátil Standalone (.exe)
-Gera `dist\EmuCraft.exe` que roda direto em qualquer computador Windows sem instalação e sem precisar de Python:
+### Opção B: Compilar Executável Portátil Standalone (.exe)
+Gera `dist\EmuCraft.exe` com metadados PE oficiais do Windows e sem compressão UPX:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build-exe.ps1
 ```
 
-### Opção D: Instalação via Python pip (Cross-Platform)
+### Opção C: Instalação via Python pip (Cross-Platform)
 ```bash
-git clone https://github.com/Henrique1601/emucraft.git
-cd emucraft
+git clone https://github.com/Henrique1601/rom-launcher.git
+cd rom-launcher
 pip install -e .[full]
 ```
 

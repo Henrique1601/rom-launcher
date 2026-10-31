@@ -2,9 +2,9 @@
 ; Baixe o Inno Setup gratuitamente em: https://jrsoftware.org/isdl.php
 
 #define MyAppName "EmuCraft"
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "EmuCraft Community"
-#define MyAppURL "https://github.com/Henrique1601/emucraft"
+#define MyAppVersion "1.0.1"
+#define MyAppPublisher "EmuCraft Project"
+#define MyAppURL "https://github.com/Henrique1601/rom-launcher"
 #define MyAppExeName "EmuCraft.exe"
 
 [Setup]

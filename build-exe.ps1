@@ -13,6 +13,7 @@ Write-Host "[1/3] Verificando instalacao do PyInstaller..." -ForegroundColor Yel
 
 Write-Host "[2/3] Compilando executavel nativo do Windows..." -ForegroundColor Yellow
 $EntryFile = Join-Path $ProjectDir "src\rom_cli\gui\main_window.py"
+$VersionFile = Join-Path $ProjectDir "file_version_info.txt"
 $DistDir = Join-Path $ProjectDir "dist"
 $BuildDir = Join-Path $ProjectDir "build"
 
@@ -20,6 +21,8 @@ $BuildDir = Join-Path $ProjectDir "build"
     --name "EmuCraft" `
     --noconsole `
     --onefile `
+    --noupx `
+    --version-file "$VersionFile" `
     --paths "src" `
     --collect-all "customtkinter" `
     --hidden-import "PIL" `

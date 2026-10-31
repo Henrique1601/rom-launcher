@@ -1,0 +1,36 @@
+# UTF-8
+#
+# Metadados de Versão do Windows PE para EmuCraft
+#
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 1, 0),
+    prodvers=(1, 0, 1, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          '040904B0',
+          [
+            StringStruct('CompanyName', 'EmuCraft Project'),
+            StringStruct('FileDescription', 'EmuCraft - Central de Emulação e Launcher Gamer'),
+            StringStruct('FileVersion', '1.0.1.0'),
+            StringStruct('InternalName', 'EmuCraft'),
+            StringStruct('LegalCopyright', 'Copyright (C) 2026 EmuCraft. Licença MIT.'),
+            StringStruct('OriginalFilename', 'EmuCraft.exe'),
+            StringStruct('ProductName', 'EmuCraft'),
+            StringStruct('ProductVersion', '1.0.1.0')
+          ]
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)
