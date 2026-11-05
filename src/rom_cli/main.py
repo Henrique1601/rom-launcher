@@ -1,10 +1,18 @@
 """Ponto de entrada do CLI (Command Line Interface)."""
 
 import argparse
+import io
 import os
 import sys
 from pathlib import Path
 from typing import List
+
+if sys.stdout is None:
+    sys.stdout = io.StringIO()
+if sys.stderr is None:
+    sys.stderr = io.StringIO()
+if sys.stdin is None:
+    sys.stdin = io.StringIO()
 
 from rom_cli.config import (
     OUT_DIR, PLATFORMS, PLATFORM_LABELS, INDEX_FILE
@@ -93,6 +101,8 @@ def main() -> int:
     ap.add_argument("--backups", action="store_true", help="lista snapshots de backup de saves e memory cards")
     ap.add_argument("--installed", action="store_true", help="lista jogos já baixados na máquina")
     ap.add_argument("--set-emulator", nargs=2, metavar=("PLATFORM", "PATH"), help="define caminho customizado de um emulador")
+    ap.add_argument("--install-emu", metavar="PLATFORM_OR_EMU", help="baixa e configura emulador portátil oficial automaticamente (1-Clique)")
+    ap.add_argument("--auto-translate", metavar="ROM_FILE", help="detecta, baixa e aplica tradução PT-BR da comunidade automaticamente na ROM")
     ap.add_argument("--list", action="store_true", help="só lista resultados")
     ap.add_argument("--print-url", action="store_true", help="mostra o link direto e sai")
     ap.add_argument("--refresh", action="store_true", help="reconstrói o índice do catálogo")
@@ -111,6 +121,48 @@ def main() -> int:
         reg.set_emulator_path(plat.lower(), emu_path)
         write(f"  ✔ Emulador para '{plat}' configurado: {emu_path}")
         return 0
+
+    if args.install_emu:
+        from rom_cli.core.emu_manager import install_emulator
+        write(f"\n  ⬇ Iniciando download e instalação automática para '{args.install_emu}'...")
+
+        def on_prog(cur, total, msg):
+            status(f"  {msg}")
+
+        success, msg, exe = install_emulator(args.install_emu, on_progress=on_prog)
+        clear_status()
+        if success:
+            write(f"  {msg}\n")
+            return 0
+        else:
+            write(f"  ✖ {msg}\n")
+            return 1
+
+    if args.auto_translate:
+        rom_p = Path(args.auto_translate)
+        if not rom_p.is_file():
+            write(f"  ✖ Arquivo não encontrado: {rom_p}")
+            return 1
+        from rom_cli.core.translations import find_translation_for_game, apply_community_translation
+        from rom_cli.core.utils import platform_of
+        pk, _ = platform_of(rom_p.name, None)
+        trans = find_translation_for_game(rom_p.stem, pk)
+        if not trans:
+            write(f"  ✖ Nenhuma tradução PT-BR automática cadastrada para '{rom_p.stem}' [{pk.upper()}].")
+            return 1
+        write(f"\n  🇧🇷 Tradução encontrada: {trans.game_title} por {trans.author} ({trans.group}) {trans.version}")
+
+        def on_prog(cur, total, msg):
+            status(f"  {msg}")
+
+        success, msg, out = apply_community_translation(rom_p, trans, on_progress=on_prog)
+        clear_status()
+        if success:
+            write(f"  {msg}\n")
+            return 0
+        else:
+            write(f"  ✖ {msg}\n")
+            return 1
 
     if args.check_bios:
         from rom_cli.core.bios_checker import audit_all_bios

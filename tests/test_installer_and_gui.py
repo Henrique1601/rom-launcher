@@ -64,6 +64,34 @@ class TestInstallerAndGUI(unittest.TestCase):
                 self.assertIn("cscript.exe", args[0])
                 self.assertEqual(kwargs.get("timeout"), 5)
 
+    def test_gui_action_methods_exist(self):
+        """Garante que a classe RomLauncherApp possui os métodos de 1-Click instalador e auto-translate."""
+        from rom_cli.gui.main_window import RomLauncherApp
+        self.assertTrue(hasattr(RomLauncherApp, "_download_emulator_action"))
+        self.assertTrue(hasattr(RomLauncherApp, "_auto_translate_game_action"))
+
+    def test_cli_flags_for_emu_and_translate(self):
+        """Verifica se as novas opções de linha de comando estão integradas no parser do EmuCraft."""
+        from unittest.mock import patch
+        from rom_cli.main import main
+
+        # Testa flag --install-emu
+        with patch("sys.argv", ["emucraft", "--install-emu", "ps1"]):
+            with patch("rom_cli.core.emu_manager.install_emulator", return_value=(True, "Instalado", "duckstation.exe")) as mock_inst:
+                code = main()
+                self.assertEqual(code, 0)
+                mock_inst.assert_called_once()
+
+        # Testa flag --auto-translate
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_rom = Path(tmp_dir) / "Super Mario World (USA).sfc"
+            fake_rom.write_bytes(b"\x00" * 512)
+            with patch("sys.argv", ["emucraft", "--auto-translate", str(fake_rom)]):
+                with patch("rom_cli.core.translations.apply_community_translation", return_value=(True, "OK", fake_rom)) as mock_trans:
+                    code = main()
+                    self.assertEqual(code, 0)
+                    mock_trans.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

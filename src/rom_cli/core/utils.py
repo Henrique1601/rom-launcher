@@ -117,6 +117,19 @@ def platform_of(fn: Optional[str], folder: Optional[str]) -> Tuple[str, str]:
     if (ext in ("nsp", "xci", "nsz") or re.search(r"\b(?:nintendo )?switch\b", flat)
             or re.search(r"\b01[0-9a-f]{12}\b", low) or kind_of(fn) == "Port"):
         return "switch", "Switch"
+
+    # Mapeamento direto por extensões exclusivas de plataformas
+    ext_map = {
+        "sfc": "snes", "smc": "snes",
+        "gba": "gba",
+        "gbc": "gbc", "gb": "gb",
+        "nds": "nds",
+        "z64": "n64", "n64": "n64", "v64": "n64",
+    }
+    if ext in ext_map:
+        pk = ext_map[ext]
+        return pk, PLATFORM_LABELS.get(pk, pk.upper())
+
     fl = (folder or "").lower()
     for token, key in (("nintendo_ds", "nds"), ("gameboy_advance", "gba"),
                        ("super_nintendo", "snes"), ("playstation_2", "ps2"),

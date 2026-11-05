@@ -14,8 +14,9 @@
 
 - 🎮 **Suporte Completo a 28+ Plataformas:** Nintendo (Switch a NES), PlayStation (PS1 a PS5, PSP, Vita), Família Xbox (Xbox Original, Xbox 360, XBLA), Sega, Arcade e PC.
 - 💎 **Interface Gamer Liquid Glass & Motion:** Hero Banner dinâmico com arte panorâmica, barra de filtros rápidos (Pills), hover glow neon e feedback sonoro de micro-interações.
+- ⚡ **1-Click Auto-Downloader de Emuladores Portáteis:** Baixa, descompacta e registra automaticamente emuladores oficiais do GitHub Releases (DuckStation, PCSX2, Dolphin, mGBA, Snes9x, melonDS, PPSSPP, xemu, Xenia) sem setup manual.
+- 🇧🇷 **Hub de Traduções PT-BR da Comunidade (1-Click Auto-Translate):** Reconhece jogos compatíveis no acervo e baixa/aplica patches IPS/BPS de equipes consagradas (BR Games, Monkey's Translations, PO.B.R.E., Tribo Gamer, Nemesis Team).
 - 💾 **Save-Sync & Backup de Memory Cards:** Snapshots automáticos de saves ao encerrar sessões (PCSX2, Dolphin, DuckStation, RPCS3, Ryujinx, RetroArch).
-- 🇧🇷 **Auto-Patcher de Traduções PT-BR:** Aplica patches `.ips` e `.bps` de fãs brasileiros diretamente na ROM com 1 clique (na GUI ou CLI).
 - 🌐 **Discord Rich Presence Nativo:** Mostra em tempo real no seu perfil do Discord qual jogo e console você está jogando, com poster oficial e tempo de sessão.
 - 🔍 **Auditor de BIOS de Emuladores:** Diagnostica a integridade e presença de BIOS/Firmwares (PS1, PS2, PS3, Switch, Xbox).
 - 🖼️ **Box Art Auto-Scraper:** Download automático de capas oficiais (2D/3D) via *Libretro Thumbnails* com cache local.
@@ -98,7 +99,14 @@ rom --random -p snes
 # Lista jogos instalados na sua biblioteca local com estatísticas
 rom --installed
 
-# Configura o caminho do emulador portátil
+# 1-Click Auto-Downloader de emulador portátil oficial (GitHub Releases)
+emucraft --install-emu ps1
+emucraft --install-emu dolphin
+
+# 1-Click Auto-Patcher de tradução PT-BR da comunidade
+emucraft --auto-translate "Super Mario World.sfc"
+
+# Configura o caminho do emulador portátil manualmente
 rom --set-emulator ps2 "D:\Emuladores\pcsx2.exe"
 
 # Lista todas as plataformas suportadas

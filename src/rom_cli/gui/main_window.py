@@ -22,6 +22,7 @@ import customtkinter as ctk
 
 from rom_cli.config import OUT_DIR, PLATFORM_LABELS
 from rom_cli.core.downloader import get_unique_path, stream_download
+from rom_cli.core.emu_manager import install_emulator, get_emulator_info
 from rom_cli.core.extractor import extract_archive
 from rom_cli.core.gamepad import GAMEPAD
 from rom_cli.core.launcher import launch_game
@@ -30,6 +31,12 @@ from rom_cli.core.retroachievements import RA_CLIENT
 from rom_cli.core.roulette import pick_random_game
 from rom_cli.core.scraper import fetch_boxart, get_cover_path
 from rom_cli.core.tracker import TRACKER
+from rom_cli.core.translations import (
+    find_translation_for_game,
+    apply_community_translation,
+    is_already_translated,
+    TranslationItem,
+)
 from rom_cli.core.utils import human_size, safe_name
 from rom_cli.core.validator import fix_magic_extension, validate_file
 from rom_cli.launcher.registry import DEFAULT_EMULATORS, EmulatorRegistry
@@ -508,6 +515,18 @@ class RomLauncherApp(ctk.CTk):
         )
         plat_badge.pack(side="left")
 
+        hero_trans = find_translation_for_game(featured_game.title, featured_game.platform_key)
+        if hero_trans:
+            pt_badge = ctk.CTkLabel(
+                badges_row,
+                text=f"  🇧🇷 TRADUÇÃO PT-BR DISPONÍVEL ({hero_trans.group})  ",
+                font=ctk.CTkFont(size=10, weight="bold"),
+                fg_color="#059669",
+                text_color="#ffffff",
+                corner_radius=6
+            )
+            pt_badge.pack(side="left", padx=(8, 0))
+
         # Título Grande do Jogo
         hero_title = ctk.CTkLabel(
             info_frame,
@@ -547,17 +566,30 @@ class RomLauncherApp(ctk.CTk):
         )
         btn_hero_play.pack(side="left", padx=(0, 10))
 
-        btn_hero_patch = ctk.CTkButton(
-            actions_row,
-            text="🔧 Traduzir (Patch)",
-            font=ctk.CTkFont(size=12),
-            height=34,
-            width=130,
-            fg_color=("#334155", "#1e293b"),
-            hover_color="#475569",
-            corner_radius=8,
-            command=lambda g=featured_game: self._apply_patch_action(g)
-        )
+        if hero_trans:
+            btn_hero_patch = ctk.CTkButton(
+                actions_row,
+                text="🇧🇷 Traduzir para PT-BR",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                height=34,
+                width=175,
+                fg_color="#0284c7",
+                hover_color="#0369a1",
+                corner_radius=8,
+                command=lambda g=featured_game, t=hero_trans: self._auto_translate_game_action(g, t)
+            )
+        else:
+            btn_hero_patch = ctk.CTkButton(
+                actions_row,
+                text="🔧 Traduzir (Patch)",
+                font=ctk.CTkFont(size=12),
+                height=34,
+                width=130,
+                fg_color=("#334155", "#1e293b"),
+                hover_color="#475569",
+                corner_radius=8,
+                command=lambda g=featured_game: self._apply_patch_action(g)
+            )
         btn_hero_patch.pack(side="left", padx=(0, 10))
 
         btn_hero_spin = ctk.CTkButton(
@@ -721,17 +753,31 @@ class RomLauncherApp(ctk.CTk):
             actions_frame = ctk.CTkFrame(card, fg_color="transparent")
             actions_frame.grid(row=0, column=1, padx=15, pady=10, sticky="e")
 
-            btn_patch = ctk.CTkButton(
-                actions_frame,
-                text="🔧 Traduzir",
-                width=85,
-                height=34,
-                font=ctk.CTkFont(size=12),
-                fg_color=("#334155", "#1e293b"),
-                hover_color="#475569",
-                corner_radius=8,
-                command=lambda g=game: self._apply_patch_action(g)
-            )
+            trans_item = find_translation_for_game(game.title, game.platform_key)
+            if trans_item:
+                btn_patch = ctk.CTkButton(
+                    actions_frame,
+                    text="🇧🇷 Traduzir (1-Clique)",
+                    width=150,
+                    height=34,
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    fg_color="#0284c7",
+                    hover_color="#0369a1",
+                    corner_radius=8,
+                    command=lambda g=game, t=trans_item: self._auto_translate_game_action(g, t)
+                )
+            else:
+                btn_patch = ctk.CTkButton(
+                    actions_frame,
+                    text="🔧 Traduzir",
+                    width=85,
+                    height=34,
+                    font=ctk.CTkFont(size=12),
+                    fg_color=("#334155", "#1e293b"),
+                    hover_color="#475569",
+                    corner_radius=8,
+                    command=lambda g=game: self._apply_patch_action(g)
+                )
             btn_patch.pack(side="left", padx=(0, 8))
 
             btn_play = ctk.CTkButton(
@@ -790,10 +836,13 @@ class RomLauncherApp(ctk.CTk):
             img_label.pack(expand=True, fill="both")
             self._load_card_cover(game, img_label)
 
-            # Platform capsule badge
+            # Platform capsule badge + PT-BR badge
             plat_color = PLATFORM_COLORS.get(game.platform_key, "#0284c7")
+            badge_row = ctk.CTkFrame(card, fg_color="transparent")
+            badge_row.pack(padx=8, pady=(0, 4))
+
             badge = ctk.CTkLabel(
-                card,
+                badge_row,
                 text=f" {game.platform_label} ",
                 font=ctk.CTkFont(size=10, weight="bold"),
                 fg_color=plat_color,
@@ -801,7 +850,20 @@ class RomLauncherApp(ctk.CTk):
                 corner_radius=6,
                 height=18
             )
-            badge.pack(padx=8, pady=(0, 4))
+            badge.pack(side="left")
+
+            grid_trans = find_translation_for_game(game.title, game.platform_key)
+            if grid_trans:
+                pt_pill = ctk.CTkLabel(
+                    badge_row,
+                    text=" 🇧🇷 PT-BR ",
+                    font=ctk.CTkFont(size=9, weight="bold"),
+                    fg_color="#059669",
+                    text_color="#ffffff",
+                    corner_radius=4,
+                    height=18
+                )
+                pt_pill.pack(side="left", padx=(4, 0))
 
             # Título resumido
             display_title = game.title if len(game.title) <= 24 else game.title[:22] + "…"
@@ -829,7 +891,20 @@ class RomLauncherApp(ctk.CTk):
                 corner_radius=8,
                 command=lambda g=game: (play_click(), self._launch_game_action(g))
             )
-            btn_play.pack(fill="x", padx=12, pady=(0, 10))
+            btn_play.pack(fill="x", padx=12, pady=(0, 6 if grid_trans else 10))
+
+            if grid_trans:
+                btn_trans = ctk.CTkButton(
+                    card,
+                    text="🇧🇷 Traduzir (1-Clique)",
+                    height=26,
+                    font=ctk.CTkFont(size=11, weight="bold"),
+                    fg_color="#0284c7",
+                    hover_color="#0369a1",
+                    corner_radius=6,
+                    command=lambda g=game, t=grid_trans: self._auto_translate_game_action(g, t)
+                )
+                btn_trans.pack(fill="x", padx=12, pady=(0, 10))
 
     def _load_card_achievements(self, game: InstalledGame, label: ctk.CTkLabel):
         def worker():
@@ -941,6 +1016,31 @@ class RomLauncherApp(ctk.CTk):
             self.refresh_library()
         except Exception as e:
             self.library_status.configure(text=f"✖ Erro ao aplicar patch: {e}")
+
+    def _auto_translate_game_action(self, game: InstalledGame, trans_item: Optional[TranslationItem] = None):
+        if not trans_item:
+            self._apply_patch_action(game)
+            return
+
+        play_click()
+        self.library_status.configure(
+            text=f"⏳ Baixando e aplicando tradução PT-BR de {trans_item.author} ({trans_item.group})...",
+            text_color="#38bdf8"
+        )
+
+        def worker():
+            def on_prog(cur, total, msg):
+                self.after(0, lambda: self.library_status.configure(text=f"⏳ {msg}", text_color="#38bdf8"))
+
+            success, msg, out_path = apply_community_translation(game.path, trans_item, on_progress=on_prog)
+            if success:
+                play_click()
+                self.after(0, lambda: self.library_status.configure(text=msg, text_color="#28a745"))
+                self.after(1200, self.refresh_library)
+            else:
+                self.after(0, lambda: self.library_status.configure(text=f"✖ {msg}", text_color="#e06c75"))
+
+        threading.Thread(target=worker, daemon=True).start()
 
     # ==========================================
     # VIEW 2: LOJA / DOWNLOAD CENTER (ONLINE)
@@ -1185,7 +1285,8 @@ class RomLauncherApp(ctk.CTk):
             plat_label = PLATFORM_LABELS.get(pk, pk.upper())
             title_text = f"{plat_label}  ({info['name']})"
             ctk.CTkLabel(txt_frame, text=title_text, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").pack(anchor="w")
-            ctk.CTkLabel(txt_frame, text=status_text, font=ctk.CTkFont(size=11), text_color=status_color, anchor="w").pack(anchor="w")
+            lbl_status = ctk.CTkLabel(txt_frame, text=status_text, font=ctk.CTkFont(size=11), text_color=status_color, anchor="w")
+            lbl_status.pack(anchor="w")
 
             from rom_cli.core.bios_checker import audit_bios
             bios_info = audit_bios(pk)
@@ -1202,14 +1303,53 @@ class RomLauncherApp(ctk.CTk):
             if bios_txt:
                 ctk.CTkLabel(txt_frame, text=bios_txt, font=ctk.CTkFont(size=11), text_color=bios_clr, anchor="w").pack(anchor="w")
 
+            actions_frame = ctk.CTkFrame(card, fg_color="transparent")
+            actions_frame.grid(row=0, column=1, padx=15, pady=10, sticky="e")
+
+            # 1-Click Auto-Downloader
+            auto_emu = get_emulator_info(pk)
+            if auto_emu:
+                btn_down_text = "🔄 Atualizar" if current_path else "⬇ Baixar (1-Clique)"
+                btn_down_fg = ("#334155", "#1e293b") if current_path else "#10b981"
+                btn_down_hover = "#475569" if current_path else "#059669"
+                btn_down = ctk.CTkButton(
+                    actions_frame,
+                    text=btn_down_text,
+                    width=150,
+                    height=30,
+                    font=ctk.CTkFont(size=11, weight="bold"),
+                    fg_color=btn_down_fg,
+                    hover_color=btn_down_hover,
+                    command=lambda p=pk, s=lbl_status: self._download_emulator_action(p, s)
+                )
+                btn_down.pack(side="left", padx=(0, 8))
+
             btn_browse = ctk.CTkButton(
-                card,
+                actions_frame,
                 text="Selecionar .exe",
                 width=110,
                 height=30,
                 command=lambda p=pk: self._browse_emulator_exe(p)
             )
-            btn_browse.grid(row=0, column=1, padx=15, pady=10, sticky="e")
+            btn_browse.pack(side="left")
+
+    def _download_emulator_action(self, platform_key: str, status_label: ctk.CTkLabel):
+        play_click()
+        status_label.configure(text="⏳ Conectando aos servidores oficiais...", text_color="#38bdf8")
+
+        def worker():
+            def on_prog(cur, total, msg):
+                self.after(0, lambda: status_label.configure(text=f"⏳ {msg}", text_color="#38bdf8"))
+
+            success, msg, exe_path = install_emulator(platform_key, on_progress=on_prog, registry=self.registry)
+            if success:
+                play_click()
+                self.after(0, lambda: status_label.configure(text=msg, text_color="#28a745"))
+                self.after(1200, self._refresh_emulators_list)
+            else:
+                self.after(0, lambda: status_label.configure(text=f"✖ {msg}", text_color="#e06c75"))
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _browse_emulator_exe(self, platform_key: str):
         path = filedialog.askopenfilename(
